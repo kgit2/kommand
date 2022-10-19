@@ -1,5 +1,9 @@
 package com.floater.process
 
+import com.floater.io.PlatformReader
+import com.floater.io.PlatformWriter
+import com.floater.io.Reader
+import com.floater.io.Writer
 import com.floater.process.Stdio.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
@@ -19,9 +23,9 @@ actual class Child actual constructor(
 ) {
     actual var id: Int? = null
 
-    private val stdinWriter: BytePacketBuilder = BytePacketBuilder()
-    private val stdoutWriter: BytePacketBuilder = BytePacketBuilder()
-    private val stderrWriter: BytePacketBuilder = BytePacketBuilder()
+    private var stdinWriter: Writer? = null
+    private var stdoutReader: Reader? = null
+    private var stderrReader: Reader? = null
 
     private val stdinPipe = IntArray(2)
     private val stdoutPipe = IntArray(2)
@@ -29,32 +33,24 @@ actual class Child actual constructor(
 
     private var options = ChildOptions.W_UNTRACED
 
-    init {
-        stdinWriter.appendLine("hello world")
-        stdinWriter.appendLine("0")
-        stdinWriter.appendLine("1")
-        stdinWriter.appendLine("2")
-        stdinWriter.appendLine("3")
-    }
-
-    actual fun getChildStdin(): BytePacketBuilder? {
+    actual fun getChildStdin(): Writer? {
         return when (stdin) {
             Inherit, Null -> null
             Pipe -> stdinWriter
         }
     }
 
-    actual fun getChildStdout(): ByteReadPacket? {
+    actual fun getChildStdout(): Reader? {
         return when (stdout) {
             Inherit, Null -> null
-            Pipe -> stdoutWriter.build()
+            Pipe -> stdoutReader
         }
     }
 
-    actual fun getChildStderr(): ByteReadPacket? {
+    actual fun getChildStderr(): Reader? {
         return when (stderr) {
             Inherit, Null -> null
-            Pipe -> stderrWriter.build()
+            Pipe -> stderrReader
         }
     }
 
@@ -76,12 +72,18 @@ actual class Child actual constructor(
         }
     }
 
-    actual fun waitWithOutput(): ByteReadPacket? {
-        wait()
-        if (stdout != Pipe) {
-            return null
+    actual fun waitWithOutput(): String? {
+        return if (stdout != Pipe) {
+            wait()
+            null
+        } else {
+            val output = StringBuilder()
+            val reader = stdoutReader!!
+            while (reader.canRead()) {
+                output.append(reader.readText())
+            }
+            output.toString()
         }
-        return stdoutWriter.build()
     }
 
     actual fun kill() {
@@ -102,13 +104,13 @@ actual class Child actual constructor(
             this@Child.id = childPid
             val (stdinFile, stdoutFile, stderrFile) = openFileDescriptor()
             if (stdinFile != null) {
-                writeToFile(stdinFile, stdinWriter.build(), memScope)
+                this.stdinWriter = createWriter(stdinFile)
             }
             if (stdoutFile != null) {
-                readFromFile(stdoutFile, stdoutWriter, memScope)
+                this.stdoutReader = createReader(stdoutFile)
             }
             if (stderrFile != null) {
-                readFromFile(stderrFile, stderrWriter, memScope)
+                this.stderrReader = createReader(stderrFile)
             }
         }
     }
@@ -200,12 +202,12 @@ actual class Child actual constructor(
     }
 
     companion object {
-        private fun writeToFile(file: CPointer<FILE>, reader: ByteReadPacket, memScope: MemScope) {
-            println("reader.canRead() = ${reader.canRead()}")
-            while (reader.canRead()) {
-                fprintf(file, "%s\n", reader.readUTF8Line())
-            }
-            fclose(file)
+        private fun createWriter(file: CPointer<FILE>): Writer {
+            return Writer(PlatformWriter(file))
+        }
+
+        private fun createReader(file: CPointer<FILE>): Reader {
+            return Reader(PlatformReader(file))
         }
 
         private fun readFromFile(file: CPointer<FILE>, writer: BytePacketBuilder, memScope: MemScope) {

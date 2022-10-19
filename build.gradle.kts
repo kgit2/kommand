@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform") version "1.7.20"
+    application
 }
 
 group = "com.git-floater"
@@ -17,6 +18,10 @@ kotlin {
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
+        }
+
+        application {
+            mainClass.set("MainKt")
         }
     }
     val hostOs = System.getProperty("os.name")

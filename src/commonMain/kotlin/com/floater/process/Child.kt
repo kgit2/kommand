@@ -1,5 +1,7 @@
 package com.floater.process
 
+import com.floater.io.Reader
+import com.floater.io.Writer
 import io.ktor.utils.io.core.*
 
 expect class Child(
@@ -20,12 +22,12 @@ expect class Child(
     val stderr: Stdio
 
     var id: Int?
-    fun getChildStdin(): BytePacketBuilder?
-    fun getChildStdout(): ByteReadPacket?
-    fun getChildStderr(): ByteReadPacket?
+    fun getChildStdin(): Writer?
+    fun getChildStdout(): Reader?
+    fun getChildStderr(): Reader?
     fun start(options: ChildOptions = ChildOptions.W_NOHANG)
     fun wait(): ChildExitStatus
-    fun waitWithOutput(): ByteReadPacket?
+    fun waitWithOutput(): String?
     fun kill()
 }
 
@@ -118,19 +120,5 @@ data class ChildExitStatus(
      */
     inline fun stopSignal(): Int {
         return w_stopsig(code)
-    }
-}
-
-public class Writer : Output() {
-    fun writeFully(src: ByteArray, offset: Int, length: Int) {
-        println("writeFully")
-    }
-
-    override fun flush() {
-        println("flush")
-    }
-
-    override fun close() {
-        println("close")
     }
 }
