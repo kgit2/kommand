@@ -4,6 +4,7 @@
 # Dependent
 - 深受rust-std `Command`启发。
 - 基于ktor-io，可以使用管道处理进程间通信(IPC)。
+- kotlin多平台1.7.20，使用新的内存管理器。
 
 ## Native for macOS/Linux/Mingw
 - 使用POSIX api的系统调用
