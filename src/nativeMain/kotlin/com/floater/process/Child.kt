@@ -95,8 +95,8 @@ actual class Child actual constructor(
     private fun processChild(childPid: Int, memScope: MemScope) {
         if (childPid == 0) {
             redirectFileDescriptor()
-            val commands = listOf(command, *args.toTypedArray())
-            execvp(commands[0], memScope.allocArrayOf(commands.map { it.cstr.getPointer(memScope) }))
+            val commands = listOf(command, *args.toTypedArray(), null)
+            execvp(commands[0], memScope.allocArrayOf(commands.map { it?.cstr?.getPointer(memScope) }))
         }
     }
 

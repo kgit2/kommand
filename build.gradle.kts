@@ -56,7 +56,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-core:2.1.2")
+                implementation("io.ktor:ktor-io:2.1.2")
             }
         }
         val commonTest by getting {

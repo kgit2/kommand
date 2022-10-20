@@ -12,12 +12,12 @@ public class Command(
     private var stderr: Stdio = Stdio.Inherit
 
     public fun arg(arg: String): Command {
-        this.args.add(arg)
+        this.args.addAll(arg.split(" "))
         return this
     }
 
     public fun args(vararg args: String): Command {
-        this.args.addAll(args)
+        this.args.addAll(args.flatMap { it.split(" ") })
         return this
     }
 
@@ -51,7 +51,7 @@ public class Command(
         return this
     }
 
-    public fun spawn(): Child {
+    public fun spawn(bufferSize: Long = DEFAULT_BUFFER_SIZE): Child {
         val child = Child(
             command = command,
             args = args,
@@ -66,11 +66,11 @@ public class Command(
     }
 
     public fun output(): String? {
-        return spawn().waitWithOutput()
+        return spawn(1024).waitWithOutput()
     }
 
     public fun status(): ChildExitStatus {
-        return spawn().wait()
+        return spawn(1024).wait()
     }
 
     public fun getArgs(): List<String> {

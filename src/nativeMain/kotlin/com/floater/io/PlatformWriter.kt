@@ -7,6 +7,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.usePinned
 import platform.posix.FILE
 import platform.posix.fclose
+import platform.posix.fflush
 import platform.posix.fwrite
 
 actual class PlatformWriter {
@@ -24,6 +25,7 @@ actual class PlatformWriter {
         buffer.usePinned {
             fwrite(it.addressOf(0), 1, length.toULong(), file)
         }
+        fflush(file)
     }
 
     actual fun close() {
