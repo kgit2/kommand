@@ -2,14 +2,14 @@
 Kotlin Native library for run external command
 
 # Dependent
-- Heavily inspired by the rust-std command.
-- Based on the io provided by ktor-client, pipes can be used for inter-process communication
+- Heavily inspired by the rust-std `Command`.
+- Based on the `ktor-io`, Inter-Process Communication(IPC) can be handled using pipes
 
 ## Native for macOS/Linux/Mingw
 - System calls using POSIX api
 
 ## JVM
-- Based `ProcessBuilder`
+- Based `java.lang.ProcessBuilder`
 
 
 # Status
