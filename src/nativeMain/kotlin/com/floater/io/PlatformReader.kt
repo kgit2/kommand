@@ -1,13 +1,8 @@
 package com.floater.io
 
 import io.ktor.utils.io.bits.*
-import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.memScoped
-import platform.posix.FILE
-import platform.posix.fclose
-import platform.posix.fread
+import kotlinx.cinterop.*
+import platform.posix.*
 
 actual class PlatformReader {
     var file: CPointer<FILE>? = null

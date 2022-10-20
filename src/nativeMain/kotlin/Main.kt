@@ -5,16 +5,16 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 fun main() {
-    // val child = Command("myecho")
-    //     .stdin(Stdio.Pipe)
-    //     // .stdout(Stdio.Pipe)
-    //     // .stderr(Stdio.Pipe)
-    //     .spawn()
-    // val output = child.wait()
-    // println(output)
-
-    val writer = BytePacketBuilder()
-    val reader = writer.build()
-    writer.appendLine("Hello, world!")
-    println(reader.readUTF8Line())
+    val child = Command("ls")
+        .arg("-la")
+        // .stdin(Stdio.Pipe)
+        .stdout(Stdio.Pipe)
+        // .stderr(Stdio.Pipe)
+        .spawn()
+    val stdout = child.getChildStdout()
+    // the canRead() method is not working before calling endOfInput()
+    while (stdout?.endOfInput == false) {
+        val line = stdout.readUTF8Line()
+        println("stdout: $line")
+    }
 }

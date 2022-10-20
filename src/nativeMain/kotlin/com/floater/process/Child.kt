@@ -79,9 +79,10 @@ actual class Child actual constructor(
         } else {
             val output = StringBuilder()
             val reader = stdoutReader!!
-            while (reader.canRead()) {
+            while (!reader.endOfInput) {
                 output.append(reader.readText())
             }
+            wait()
             output.toString()
         }
     }

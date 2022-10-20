@@ -66,7 +66,7 @@ public class Command(
     }
 
     public fun output(): String? {
-        return spawn().waitWithOutput()?.readText()
+        return spawn().waitWithOutput()
     }
 
     public fun status(): ChildExitStatus {
