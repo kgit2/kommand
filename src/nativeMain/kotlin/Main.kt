@@ -1,10 +1,6 @@
 import com.floater.process.Command
 import com.floater.process.Stdio
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import platform.posix.stdin
-import platform.posix.stdout
 
 fun main() = runBlocking<Unit> {
     val child = Command("ping")
@@ -12,7 +8,7 @@ fun main() = runBlocking<Unit> {
         // .stdin(Stdio.Pipe)
         .stdout(Stdio.Pipe)
         // .stderr(Stdio.Pipe)
-        .spawn(1L)
+        .spawn()
     val stdin = child.getChildStdin()
     val stdout = child.getChildStdout()
     // the canRead() method is not working before calling endOfInput()

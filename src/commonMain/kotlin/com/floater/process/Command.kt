@@ -51,7 +51,7 @@ public class Command(
         return this
     }
 
-    public fun spawn(bufferSize: Long = DEFAULT_BUFFER_SIZE): Child {
+    public fun spawn(): Child {
         val child = Child(
             command = command,
             args = args,
@@ -66,11 +66,11 @@ public class Command(
     }
 
     public fun output(): String? {
-        return spawn(1024).waitWithOutput()
+        return spawn().waitWithOutput()
     }
 
     public fun status(): ChildExitStatus {
-        return spawn(1024).wait()
+        return spawn().wait()
     }
 
     public fun getArgs(): List<String> {

@@ -4,7 +4,6 @@ import com.floater.io.Reader
 import com.floater.io.Writer
 import io.ktor.utils.io.core.*
 
-const val DEFAULT_BUFFER_SIZE = 32L
 expect class Child(
     command: String,
     args: List<String>,
@@ -13,7 +12,6 @@ expect class Child(
     stdin: Stdio,
     stdout: Stdio,
     stderr: Stdio,
-    bufferSize: Long = DEFAULT_BUFFER_SIZE
 ) {
     val command: String
     val args: List<String>
