@@ -1,3 +1,5 @@
+import com.floater.process.Command
+import com.floater.process.Stdio
 import io.ktor.utils.io.core.*
 import java.io.BufferedWriter
 import java.io.ByteArrayInputStream
@@ -7,23 +9,20 @@ import java.io.OutputStreamWriter
 import java.io.PipedInputStream
 
 fun main() {
-    // val child = Command("myecho")
-    //     .stdin(Stdio.Pipe)
-    //     // .stdout(Stdio.Pipe)
-    //     // .stderr(Stdio.Pipe)
-    //     .spawn()
-    // val output = child.wait()
+    val child = Command("ping")
+        .args("-c 5 localhost")
+        .stdout(Stdio.Pipe)
+        .spawn()
+    // val output = child.waitWithOutput()
     // println(output)
+    // println("=============================================")
+    // println(output?.length)
+    var length = 0
+    child.getChildStdout()?.lines()?.forEach {
+        println(it)
+        length += it.length
+    }
+    println("=============================================")
+    println(length)
 
-    ProcessBuilder("myecho")
-        .redirectInput(ProcessBuilder.Redirect.PIPE)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-        .start()
-        .apply {
-        }
-    val writer = BytePacketBuilder()
-    val reader = writer.build()
-    writer.appendLine("Hello, world!")
-    println(reader.readUTF8Line())
 }

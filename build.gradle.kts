@@ -1,13 +1,19 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 plugins {
     kotlin("multiplatform") version "1.7.20"
+    id("org.jetbrains.dokka") version "1.7.20"
+    `maven-publish`
     application
+    signing
 }
 
 group = "com.git-floater"
-version = "1.0-SNAPSHOT"
+version = "0.0.1"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 kotlin {
@@ -62,6 +68,9 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("io.ktor:ktor-server-core:2.1.2")
+                implementation("io.ktor:ktor-server-cio:2.1.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }
         }
         val jvmMain by getting
@@ -69,4 +78,74 @@ kotlin {
         val nativeMain by getting
         val nativeTest by getting
     }
+}
+
+val ossrhUrl: String = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+val ossrhUsername: String by project
+val ossrhPassword: String by project
+
+val keyId = project.findProperty("signing.keyId") as String?
+val keyPass = project.findProperty("signing.password") as String?
+val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
+
+val dokkaOutputDir = "$buildDir/dokka"
+
+tasks.getByName<DokkaTask>("dokkaHtml") {
+    outputDirectory.set(file(dokkaOutputDir))
+}
+
+val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
+    delete(dokkaOutputDir)
+}
+
+val javadocJar = tasks.register<Jar>("javadocJar") {
+    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaOutputDir)
+}
+
+publishing {
+    repositories {
+        mavenLocal()
+        maven {
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+    }
+    publications {
+        withType<MavenPublication> {
+            artifact(javadocJar.get())
+            pom {
+                name.set("Kommand")
+                description.set("A simple process library for Kotlin Multiplatform")
+                url.set("https://github.com/BppleMan/Kommand")
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                scm {
+                    connection.set("https://github.com/BppleMan/Kommand.git")
+                    url.set("https://github.com/BppleMan/Kommand")
+                }
+                developers {
+                    developer {
+                        id.set("BppleMan")
+                        name.set("BppleMan")
+                        email.set("bppleman@gmail.com")
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign(publishing.publications)
 }

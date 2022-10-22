@@ -210,17 +210,5 @@ actual class Child actual constructor(
         private fun createReader(file: CPointer<FILE>): Reader {
             return Reader(PlatformReader(file))
         }
-
-        private fun readFromFile(file: CPointer<FILE>, writer: BytePacketBuilder, memScope: MemScope) {
-            val buffer = memScope.allocPointerTo<ByteVar>()
-            while (true) {
-                val size = getline(buffer.ptr, cValue(), file)
-                if (size <= 0L) break
-                for (i in 0 until size) {
-                    writer.writeByte(buffer.value!![i])
-                }
-            }
-            fclose(file)
-        }
     }
 }

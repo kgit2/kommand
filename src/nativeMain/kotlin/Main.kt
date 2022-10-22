@@ -5,36 +5,17 @@ import kotlinx.coroutines.*
 fun main() = runBlocking<Unit> {
     val child = Command("ping")
         .args("-c 5 localhost")
-        // .stdin(Stdio.Pipe)
         .stdout(Stdio.Pipe)
-        // .stderr(Stdio.Pipe)
         .spawn()
-    val stdin = child.getChildStdin()
-    val stdout = child.getChildStdout()
-    // the canRead() method is not working before calling endOfInput()
-    // while (stdout?.endOfInput == false) {
-    //     val line = stdout.readUTF8Line()
-    //     println("stdout: $line")
-    // }
-    withContext(Dispatchers.Default) {
-        println("will launch write")
-        launch {
-            println("launch write")
-            for (i in 1..10) {
-                stdin?.appendLine("hello$i")
-                stdin?.flush()
-            }
-            stdin?.close()
-        }
-        println("will launch read")
-        launch {
-            println("launch read")
-            stdout?.lines()?.forEach {
-                println("stdout: $it")
-            }
-            println("stdout read finished")
-            stdout?.close()
-        }
+    // val output = child.waitWithOutput()
+    // println(output)
+    // println("=============================================")
+    // println(output?.length)
+    var length = 0
+    child.getChildStdout()?.lines()?.forEach {
+        println(it)
+        length += it.length
     }
-    // child.wait()
+    println("=============================================")
+    println(length)
 }

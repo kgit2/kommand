@@ -10,14 +10,8 @@ import platform.posix.fclose
 import platform.posix.fflush
 import platform.posix.fwrite
 
-actual class PlatformWriter {
-    var file: CPointer<FILE>? = null
-
-    constructor(
-        file: CPointer<FILE>
-    ) {
-        this.file = file
-    }
+actual class PlatformWriter(file: CPointer<FILE>) {
+    var file: CPointer<FILE>? = file
 
     actual fun flush(source: Memory, offset: Int, length: Int) {
         val buffer = ByteArray(length)

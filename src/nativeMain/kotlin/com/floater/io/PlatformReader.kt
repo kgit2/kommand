@@ -4,14 +4,8 @@ import io.ktor.utils.io.bits.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
-actual class PlatformReader {
-    var file: CPointer<FILE>? = null
-
-    constructor(
-        file: CPointer<FILE>
-    ) {
-        this.file = file
-    }
+actual class PlatformReader(file: CPointer<FILE>) {
+    var file: CPointer<FILE>? = file
 
     actual fun closeSource() {
         fclose(file)

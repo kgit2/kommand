@@ -1,15 +1,14 @@
 package com.floater.io
 
 import io.ktor.utils.io.bits.*
+import java.io.BufferedReader
 import java.io.InputStream
 
-actual class PlatformReader {
-    var inputStream: InputStream? = null
+actual class PlatformReader(inputStream: InputStream) {
+    private var inputStream: BufferedReader? = null
 
-    constructor(
-        inputStream: InputStream
-    ) {
-        this.inputStream = inputStream
+    init {
+        this.inputStream = inputStream.bufferedReader()
     }
 
     actual fun closeSource() {
@@ -17,11 +16,34 @@ actual class PlatformReader {
     }
 
     actual fun fill(destination: Memory, offset: Int, length: Int): Int {
-        val buffer = ByteArray(length)
-        val read = inputStream?.read(buffer) ?: 0
-        buffer.withIndex().forEach {
-            destination.storeAt(offset + it.index, it.value)
+        val buffer = CharArray(length)
+        var readed = 0
+        while (length > readed && inputStream?.ready() == true) {
+            val readNow = inputStream?.read(buffer, readed, length - readed) ?: 0
+            if (readNow == -1) {
+                break
+            }
+            readed += readNow
         }
-        return read
+        buffer.forEachIndexed { index, c ->
+            destination.storeAt(offset + index, c.code.toByte())
+        }
+        return readed
+    }
+
+    actual fun fillLine(destination: Memory, offset: Int, length: Int): Int {
+        return try {
+            val line = inputStream?.readLine() ?: return 0
+            var readed = 0
+            line.forEachIndexed { index, c ->
+                destination.storeAt(offset + index, c.code.toByte())
+                readed += 1
+            }
+            destination.storeAt(offset + readed, 10)
+            readed += 1
+            readed
+        } catch (e: Exception) {
+            0
+        }
     }
 }
