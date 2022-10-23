@@ -1,6 +1,12 @@
+![logo](https://raw.githubusercontent.com/floater-git/Artist/main/Kommand/logo.png)
+
 # Kommand
 
 Kotlin Native library for run external command
+
+# Architecture
+
+![architecture](https://raw.githubusercontent.com/floater-git/Artist/main/Kommand/architecture.png)
 
 # Dependent
 
@@ -8,13 +14,13 @@ Kotlin Native library for run external command
 - Based on the `ktor-io`, Inter-Process Communication(IPC) can be handled using pipes
 - Kotlin Multiplatform 1.7.20 with new memory manager
 
-## Native for macOS/Linux/Mingw
+- ### Native for macOS/Linux/Mingw
 
-- System calls using POSIX api
+    System calls using POSIX api
 
-## JVM
+- ### JVM
 
-- Based `java.lang.ProcessBuilder`
+    Based `java.lang.ProcessBuilder`
 
 
 # Usage
