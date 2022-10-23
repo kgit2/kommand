@@ -101,8 +101,6 @@ object Posix {
             when (errno) {
                 E2BIG -> IOException("The total number of bytes in the environment (envp) and argument list (argv) is too large.")
 
-                EACCES -> IOException("Search permission is denied on a component of the path prefix of filename or the name of a script interpreter. (See also path_resolution(7).)")
-
                 EACCES -> IOException("The file or a script interpreter is not a regular file.\nOr Execute permission is denied for the file or a script or ELF interpreter.\nOr The file system is mounted noexec.")
 
                 EFAULT -> IOException("filename points outside your accessible address space.")
@@ -130,8 +128,6 @@ object Posix {
                 ENOTDIR -> IOException("A component of the path prefix of filename or a script or ELF interpreter is not a directory.")
 
                 EPERM -> IOException("The file system is mounted nosuid, the user is not the superuser, and the file has the set-user-ID or set-group-ID bit set.")
-
-                EPERM -> IOException("The process is being traced, the user is not the superuser and the file has the set-user-ID or set-group-ID bit set.")
 
                 ETXTBSY -> IOException("Executable was open for writing by one or more processes.")
 
