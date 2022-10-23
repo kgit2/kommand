@@ -3,6 +3,7 @@ package com.floater.process
 import com.floater.io.Reader
 import com.floater.io.Writer
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 
 expect class Child(
     command: String,
@@ -25,8 +26,11 @@ expect class Child(
     fun getChildStdin(): Writer?
     fun getChildStdout(): Reader?
     fun getChildStderr(): Reader?
+    @Throws(IOException::class)
     fun start(options: ChildOptions = ChildOptions.W_NOHANG)
+    @Throws(IOException::class)
     fun wait(): ChildExitStatus
+    @Throws(IOException::class)
     fun waitWithOutput(): String?
     fun kill()
 }

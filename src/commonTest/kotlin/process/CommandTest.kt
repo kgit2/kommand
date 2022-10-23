@@ -28,7 +28,7 @@ class CommandTest {
     @Test
     fun pingCommand() {
         val output = Command("ping")
-            .args("-c 5 localhost")
+            .args("-c", "5", "localhost")
             .stdout(Stdio.Pipe)
             .spawn()
             .waitWithOutput()
@@ -42,7 +42,7 @@ class CommandTest {
         val expectLineCount = 10
         var lineCount = 0
         Command("ping")
-            .args("-c 5 localhost")
+            .args("-c", "5", "localhost")
             .stdout(Stdio.Pipe)
             .spawn()
             .getChildStdout()
@@ -51,5 +51,15 @@ class CommandTest {
                 lineCount += 1
             }
         assertEquals(expectLineCount, lineCount)
+    }
+
+    @Test
+    fun shTest() {
+        val output = Command("sh")
+            .args("-c", "f() { echo username=a; echo password=b; }; f get")
+            .stdout(Stdio.Pipe)
+            .spawn()
+            .waitWithOutput()
+        assertEquals("username=a\npassword=b\n", output)
     }
 }

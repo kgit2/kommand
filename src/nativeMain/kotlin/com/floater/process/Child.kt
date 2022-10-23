@@ -1,11 +1,9 @@
 package com.floater.process
 
-import com.floater.io.PlatformReader
-import com.floater.io.PlatformWriter
 import com.floater.io.Reader
 import com.floater.io.Writer
 import com.floater.process.Stdio.*
-import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
@@ -54,24 +52,23 @@ actual class Child actual constructor(
         }
     }
 
+    @Throws(IOException::class)
     actual fun start(options: ChildOptions) {
         this.options = options
         memScoped {
             createPipe()
-            val childPid = fork()
-            processChild(childPid, this)
-            processLocal(childPid, this)
+            val childPid = Posix.fork()
+            processChild(childPid)
+            processLocal(childPid)
         }
     }
 
+    @Throws(IOException::class)
     actual fun wait(): ChildExitStatus {
-        return memScoped {
-            val statusCode = alloc<IntVar>()
-            waitpid(id!!, statusCode.ptr, options.value)
-            ChildExitStatus(statusCode.value)
-        }
+        return Posix.waitpid(id!!, options.value)
     }
 
+    @Throws(IOException::class)
     actual fun waitWithOutput(): String? {
         return if (stdout != Pipe) {
             wait()
@@ -87,128 +84,116 @@ actual class Child actual constructor(
         }
     }
 
+    @Throws(IOException::class)
     actual fun kill() {
         assert(id != null)
-        kill(id!!, SIGTERM)
+        Posix.kill(id!!, SIGTERM)
     }
 
-    private fun processChild(childPid: Int, memScope: MemScope) {
+    @Throws(IOException::class)
+    private fun processChild(childPid: Int) {
         if (childPid == 0) {
             redirectFileDescriptor()
             val commands = listOf(command, *args.toTypedArray(), null)
-            execvp(commands[0], memScope.allocArrayOf(commands.map { it?.cstr?.getPointer(memScope) }))
+            Posix.execvp(commands)
         }
     }
 
-    private fun processLocal(childPid: Int, memScope: MemScope) {
+    private fun processLocal(childPid: Int) {
         if (childPid > 0) {
             this@Child.id = childPid
             val (stdinFile, stdoutFile, stderrFile) = openFileDescriptor()
             if (stdinFile != null) {
-                this.stdinWriter = createWriter(stdinFile)
+                this.stdinWriter = Posix.createWriter(stdinFile)
             }
             if (stdoutFile != null) {
-                this.stdoutReader = createReader(stdoutFile)
+                this.stdoutReader = Posix.createReader(stdoutFile)
             }
             if (stderrFile != null) {
-                this.stderrReader = createReader(stderrFile)
+                this.stderrReader = Posix.createReader(stderrFile)
             }
         }
     }
 
     private fun createPipe() {
+        val pipes = mutableListOf<Pair<IntArray, String>>()
         when (stdin) {
-            Pipe -> stdinPipe.usePinned {
-                pipe(it.addressOf(0))
-            }
-
-            else -> Unit
-        }
+            Pipe -> stdinPipe
+            else -> null
+        }?.also { pipes.add(it to "stdin") }
         when (stdout) {
-            Pipe -> stdoutPipe.usePinned {
-                pipe(it.addressOf(0))
-            }
-
-            else -> Unit
-        }
+            Pipe -> stdoutPipe
+            else -> null
+        }?.also { pipes.add(it to "stdout") }
         when (stderr) {
-            Pipe -> stderrPipe.usePinned {
-                pipe(it.addressOf(0))
-            }
-
-            else -> Unit
+            Pipe -> stderrPipe
+            else -> null
+        }?.also { pipes.add(it to "stderr") }
+        pipes.forEach {
+            Posix.pipe(it.first)
         }
     }
 
     private fun redirectFileDescriptor() {
         when (stdin) {
             Null -> {
-                close(STDIN_FILENO)
+                Posix.close(STDIN_FILENO)
             }
             Pipe -> {
-                dup2(stdinPipe[READ_END], STDIN_FILENO)
-                close(stdinPipe[WRITE_END])
+                Posix.dup2(stdinPipe[READ_END], STDIN_FILENO)
+                Posix.close(stdinPipe[WRITE_END])
             }
             Inherit -> Unit
         }
         when (stdout) {
             Null -> {
-                close(STDOUT_FILENO)
+                Posix.close(STDOUT_FILENO)
             }
             Pipe -> {
-                dup2(stdoutPipe[WRITE_END], STDOUT_FILENO)
-                close(stdoutPipe[READ_END])
+                Posix.dup2(stdoutPipe[WRITE_END], STDOUT_FILENO)
+                Posix.close(stdoutPipe[READ_END])
             }
 
             Inherit -> Unit
         }
         when (stderr) {
             Null -> {
-                close(STDERR_FILENO)
+                Posix.close(STDERR_FILENO)
             }
             Pipe -> {
-                dup2(stderrPipe[WRITE_END], STDERR_FILENO)
-                close(stderrPipe[READ_END])
+                Posix.dup2(stderrPipe[WRITE_END], STDERR_FILENO)
+                Posix.close(stderrPipe[READ_END])
             }
             Inherit -> Unit
         }
     }
 
+    @Throws(IOException::class)
     private fun openFileDescriptor(): Triple<CPointer<FILE>?, CPointer<FILE>?, CPointer<FILE>?> {
         val stdinFile = when (stdin) {
             Pipe -> {
-                close(stdinPipe[READ_END])
-                fdopen(stdinPipe[WRITE_END], "w")
+                Posix.close(stdinPipe[READ_END])
+                Posix.fdopen(stdinPipe[WRITE_END], "w")
             }
 
             else -> null
         }
         val stdoutFile = when (stdout) {
             Pipe -> {
-                close(stdoutPipe[WRITE_END])
-                fdopen(stdoutPipe[READ_END], "r")
+                Posix.close(stdoutPipe[WRITE_END])
+                Posix.fdopen(stdoutPipe[READ_END], "r")
             }
 
             else -> null
         }
         val stderrFile = when (stderr) {
             Pipe -> {
-                close(stderrPipe[WRITE_END])
-                fdopen(stderrPipe[READ_END], "r")
+                Posix.close(stderrPipe[WRITE_END])
+                Posix.fdopen(stderrPipe[READ_END], "r")
             }
 
             else -> null
         }
         return Triple(stdinFile, stdoutFile, stderrFile)
-    }
-
-    companion object {
-        private fun createWriter(file: CPointer<FILE>): Writer {
-            return Writer(PlatformWriter(file))
-        }
-
-        private fun createReader(file: CPointer<FILE>): Reader {
-            return Reader(PlatformReader(file))
-        }
     }
 }

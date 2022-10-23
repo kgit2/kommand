@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="Kommand-js-1.0-SNAPSHOT">
-    <output-path>$PROJECT_DIR$/build/libs</output-path>
-    <root id="archive" name="Kommand-js-1.0-SNAPSHOT.jar">
-      <element id="module-output" name="Kommand.jsMain" />
-    </root>
-  </artifact>
-</component>

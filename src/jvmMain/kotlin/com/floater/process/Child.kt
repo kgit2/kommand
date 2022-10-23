@@ -4,6 +4,7 @@ import com.floater.io.PlatformReader
 import com.floater.io.PlatformWriter
 import com.floater.io.Reader
 import com.floater.io.Writer
+import io.ktor.utils.io.errors.*
 import java.io.File
 
 actual class Child actual constructor(
@@ -44,29 +45,35 @@ actual class Child actual constructor(
         }
     }
 
+    @Throws(IOException::class)
     actual fun start(options: ChildOptions) {
         val processBuilder = ProcessBuilder(command, *args.toTypedArray())
         cwd?.let { processBuilder.directory(File(it)) }
         redirectStdio(processBuilder)
-        process = processBuilder.start()
+        kotlin.runCatching {
+            process = processBuilder.start()
+        }.onFailure {
+            throw IOException(it)
+        }
         this.id = process?.pid()?.toInt()
         this.stdinWriter = createWriter(stdin, process!!)
         this.stdoutReader = createReader(stdout, process!!)
         this.stderrReader = createReader(stderr, process!!)
-            // .directory(cwd?.let { File(it) })
-
     }
 
+    @Throws(IOException::class)
     actual fun wait(): ChildExitStatus {
         val exitCode = try {
             process!!.waitFor()
         } catch (e: InterruptedException) {
-            e.printStackTrace()
             0x7F
+        } catch (e: java.io.IOException) {
+            throw IOException(e)
         }
         return ChildExitStatus(exitCode)
     }
 
+    @Throws(IOException::class)
     actual fun waitWithOutput(): String? {
         wait()
         return stdoutReader?.readText()

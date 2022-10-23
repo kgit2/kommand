@@ -17,7 +17,7 @@ public class Command(
     }
 
     public fun args(vararg args: String): Command {
-        this.args.addAll(args.flatMap { it.split(" ") })
+        this.args.addAll(args)
         return this
     }
 
