@@ -28,7 +28,7 @@ repositories {
 // ……
 
 dependencies {
-    implementation("com.git-floater:Kommand:0.0.1")
+    implementation("com.git-floater:Kommand:$lastVersion")
 }
 
 ```
