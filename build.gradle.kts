@@ -141,6 +141,13 @@ publishing {
                         email.set("bppleman@gmail.com")
                     }
                 }
+                distributionManagement {
+                    relocation {
+                        groupId.set("com.kgit2")
+                        artifactId.set("kommand")
+                        version.set("0.1.1")
+                    }
+                }
             }
         }
     }
