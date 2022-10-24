@@ -1,5 +1,5 @@
-import com.floater.process.Command
-import com.floater.process.Stdio
+import com.kgit2.process.Command
+import com.kgit2.process.Stdio
 import kotlinx.coroutines.*
 
 fun main() = runBlocking<Unit> {

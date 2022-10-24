@@ -1,8 +1,8 @@
-package com.floater.process
+package com.kgit2.process
 
-import com.floater.io.Reader
-import com.floater.io.Writer
-import com.floater.process.Stdio.*
+import com.kgit2.io.Reader
+import com.kgit2.io.Writer
+import com.kgit2.process.Stdio.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import platform.posix.*

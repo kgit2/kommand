@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/floater-git/Artist/main/Kommand/logo.png)
+![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
 # Kommand
 
@@ -6,7 +6,7 @@ Kotlin Native library for run external command
 
 # Architecture
 
-![architecture](https://raw.githubusercontent.com/floater-git/Artist/main/Kommand/architecture.png)
+![architecture](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/architecture.png)
 
 # Dependent
 
@@ -27,7 +27,7 @@ Kotlin Native library for run external command
 
 ## Dependency
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.git-floater/Kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.git-floater/Kommand)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
 
 `build.gradle.kts`:
 
@@ -39,7 +39,7 @@ repositories {
 // ……
 
 dependencies {
-    implementation("com.git-floater:Kommand:$lastVersion")
+    implementation("com.kgit2:kommand:$lastVersion")
 }
 
 ```
@@ -63,7 +63,7 @@ val child = Command("ping")
     .args("-c", "5", "localhost")
     .stdout(Stdio.Pipe)
     .spawn()
-val stdoutReader: com.floater.io.Reader? = child.getChildStdout()
+val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
 val lines: Sequence<String> = stdoutReader?.lines()
 lines.forEach { 
     println(it)

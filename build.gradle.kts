@@ -8,8 +8,8 @@ plugins {
     signing
 }
 
-group = "com.git-floater"
-version = "0.1.1"
+group = "com.kgit2"
+version = "0.1.2"
 
 repositories {
     mavenCentral()
@@ -121,9 +121,9 @@ publishing {
         withType<MavenPublication> {
             artifact(javadocJar.get())
             pom {
-                name.set("Kommand")
+                name.set("kommand")
                 description.set("A simple process library for Kotlin Multiplatform")
-                url.set("https://github.com/BppleMan/Kommand")
+                url.set("https://github.com/kgit2/kommand")
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
@@ -131,8 +131,8 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("https://github.com/BppleMan/Kommand.git")
-                    url.set("https://github.com/BppleMan/Kommand")
+                    connection.set("https://github.com/kgit2/kommand.git")
+                    url.set("https://github.com/kgit2/kommand")
                 }
                 developers {
                     developer {
@@ -143,8 +143,8 @@ publishing {
                 }
                 distributionManagement {
                     relocation {
-                        groupId.set("com.kgit2")
-                        artifactId.set("kommand")
+                        groupId.set("com.git-floater")
+                        artifactId.set("Kommand")
                         version.set("0.1.1")
                     }
                 }

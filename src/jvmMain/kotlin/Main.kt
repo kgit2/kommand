@@ -1,12 +1,5 @@
-import com.floater.process.Command
-import com.floater.process.Stdio
-import io.ktor.utils.io.core.*
-import java.io.BufferedWriter
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
-import java.io.OutputStreamWriter
-import java.io.PipedInputStream
+import com.kgit2.process.Command
+import com.kgit2.process.Stdio
 
 fun main() {
     val child = Command("ping")

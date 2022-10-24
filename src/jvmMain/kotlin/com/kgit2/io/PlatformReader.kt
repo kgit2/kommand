@@ -1,4 +1,4 @@
-package com.floater.io
+package com.kgit2.io
 
 import io.ktor.utils.io.bits.*
 import java.io.BufferedReader

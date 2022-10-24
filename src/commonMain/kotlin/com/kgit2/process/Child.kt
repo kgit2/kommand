@@ -1,7 +1,7 @@
-package com.floater.process
+package com.kgit2.process
 
-import com.floater.io.Reader
-import com.floater.io.Writer
+import com.kgit2.io.Reader
+import com.kgit2.io.Writer
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 

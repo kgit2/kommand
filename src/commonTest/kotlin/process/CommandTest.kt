@@ -1,7 +1,7 @@
 package process
 
-import com.floater.process.Command
-import com.floater.process.Stdio
+import com.kgit2.process.Command
+import com.kgit2.process.Stdio
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext

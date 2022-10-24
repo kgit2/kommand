@@ -1,9 +1,8 @@
-package com.floater.io
+package com.kgit2.io
 
 import io.ktor.utils.io.bits.*
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.usePinned
 import platform.posix.FILE
 import platform.posix.fclose
