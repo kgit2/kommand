@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "0.1.2"
+version = "0.1.3"
 
 repositories {
     mavenCentral()
@@ -139,13 +139,6 @@ publishing {
                         id.set("BppleMan")
                         name.set("BppleMan")
                         email.set("bppleman@gmail.com")
-                    }
-                }
-                distributionManagement {
-                    relocation {
-                        groupId.set("com.git-floater")
-                        artifactId.set("Kommand")
-                        version.set("0.1.1")
                     }
                 }
             }
