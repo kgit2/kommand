@@ -36,6 +36,7 @@ public class Command(
         return this
     }
 
+
     public fun stdin(stdin: Stdio): Command {
         this.stdin = stdin
         return this
@@ -83,6 +84,14 @@ public class Command(
 
     public fun getCwd(): String? {
         return cwd
+    }
+
+    override fun toString(): String {
+        return "Command(command='$command', args=$args, envs=$envs, cwd=$cwd, stdin=$stdin, stdout=$stdout, stderr=$stderr)"
+    }
+
+    public fun prompt(): String {
+        return "$command ${args.joinToString(" ")}"
     }
 }
 

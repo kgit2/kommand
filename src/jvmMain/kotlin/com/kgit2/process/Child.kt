@@ -64,7 +64,11 @@ actual class Child actual constructor(
     @Throws(IOException::class)
     actual fun wait(): ChildExitStatus {
         val exitCode = try {
-            process!!.waitFor()
+            stdinWriter?.close()
+            val exitCode = process!!.waitFor()
+            stdoutReader?.close()
+            stderrReader?.close()
+            exitCode
         } catch (e: InterruptedException) {
             0x7F
         } catch (e: java.io.IOException) {
@@ -75,11 +79,27 @@ actual class Child actual constructor(
 
     @Throws(IOException::class)
     actual fun waitWithOutput(): String? {
-        wait()
-        return stdoutReader?.readText()
+        return if (stdout != Stdio.Pipe) {
+            stdinWriter?.close()
+            process!!.waitFor()
+            stderrReader?.close()
+            null
+        } else {
+            stdinWriter?.close()
+            val output = StringBuilder()
+            val reader = stdoutReader!!
+            while (!reader.endOfInput) {
+                output.append(reader.readText())
+            }
+            process!!.waitFor()
+            stdoutReader?.close()
+            stderrReader?.close()
+            output.toString()
+        }
     }
 
     actual fun kill() {
+        process?.destroy()
     }
 
     private fun redirectStdio(processBuilder: ProcessBuilder) {
@@ -87,9 +107,11 @@ actual class Child actual constructor(
             Stdio.Inherit -> {
                 processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT)
             }
+
             Stdio.Null -> {
                 processBuilder.redirectInput(ProcessBuilder.Redirect.DISCARD)
             }
+
             Stdio.Pipe -> {
                 processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE)
             }
@@ -98,9 +120,11 @@ actual class Child actual constructor(
             Stdio.Inherit -> {
                 processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
             }
+
             Stdio.Null -> {
                 processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD)
             }
+
             Stdio.Pipe -> {
                 processBuilder.redirectOutput(ProcessBuilder.Redirect.PIPE)
             }
@@ -109,13 +133,23 @@ actual class Child actual constructor(
             Stdio.Inherit -> {
                 processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
             }
+
             Stdio.Null -> {
                 processBuilder.redirectError(ProcessBuilder.Redirect.DISCARD)
             }
+
             Stdio.Pipe -> {
                 processBuilder.redirectError(ProcessBuilder.Redirect.PIPE)
             }
         }
+    }
+
+    override fun toString(): String {
+        return "Child(command='$command', args=$args, envs=$envs, cwd=$cwd, stdin=$stdin, stdout=$stdout, stderr=$stderr, id=$id, process=$process)"
+    }
+
+    actual fun prompt(): String {
+        return "$command ${args.joinToString(" ")}"
     }
 
     companion object {
@@ -139,4 +173,6 @@ actual class Child actual constructor(
             }
         }
     }
+
+
 }

@@ -15,7 +15,7 @@ actual class PlatformReader(file: CPointer<FILE>) {
         return memScoped {
             val buffer = allocArray<ByteVar>(length)
             val read = fread(buffer, 1, length.toULong(), file)
-            buffer.copyTo(destination, offset.toLong(), read.toLong(), 0)
+            buffer.copyTo(destination, offset.convert(), read.convert(), 0)
             read.toInt()
         }
     }

@@ -65,21 +65,30 @@ actual class Child actual constructor(
 
     @Throws(IOException::class)
     actual fun wait(): ChildExitStatus {
-        return Posix.waitpid(id!!, options.value)
+        stdinWriter?.close()
+        val status = Posix.waitpid(id!!, options.value)
+        stdoutReader?.close()
+        stderrReader?.close()
+        return status
     }
 
     @Throws(IOException::class)
     actual fun waitWithOutput(): String? {
         return if (stdout != Pipe) {
-            wait()
+            stdinWriter?.close()
+            Posix.waitpid(id!!, options.value)
+            stderrReader?.close()
             null
         } else {
+            stdinWriter?.close()
             val output = StringBuilder()
             val reader = stdoutReader!!
             while (!reader.endOfInput) {
                 output.append(reader.readText())
             }
-            wait()
+            Posix.waitpid(id!!, options.value)
+            stdoutReader?.close()
+            stderrReader?.close()
             output.toString()
         }
     }
@@ -139,16 +148,19 @@ actual class Child actual constructor(
             Null -> {
                 Posix.close(STDIN_FILENO)
             }
+
             Pipe -> {
                 Posix.dup2(stdinPipe[READ_END], STDIN_FILENO)
                 Posix.close(stdinPipe[WRITE_END])
             }
+
             Inherit -> Unit
         }
         when (stdout) {
             Null -> {
                 Posix.close(STDOUT_FILENO)
             }
+
             Pipe -> {
                 Posix.dup2(stdoutPipe[WRITE_END], STDOUT_FILENO)
                 Posix.close(stdoutPipe[READ_END])
@@ -160,10 +172,12 @@ actual class Child actual constructor(
             Null -> {
                 Posix.close(STDERR_FILENO)
             }
+
             Pipe -> {
                 Posix.dup2(stderrPipe[WRITE_END], STDERR_FILENO)
                 Posix.close(stderrPipe[READ_END])
             }
+
             Inherit -> Unit
         }
     }
@@ -195,5 +209,13 @@ actual class Child actual constructor(
             else -> null
         }
         return Triple(stdinFile, stdoutFile, stderrFile)
+    }
+
+    override fun toString(): String {
+        return "Child(command='$command', args=$args, envs=$envs, cwd=$cwd, stdin=$stdin, stdout=$stdout, stderr=$stderr, id=$id, stdinPipe=${stdinPipe.contentToString()}, stdoutPipe=${stdoutPipe.contentToString()}, stderrPipe=${stderrPipe.contentToString()}, options=$options)"
+    }
+
+    actual fun prompt(): String {
+        return "$command ${args.joinToString(" ")}"
     }
 }
