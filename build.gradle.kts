@@ -1,8 +1,8 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
-    kotlin("multiplatform") version "1.7.20"
-    id("org.jetbrains.dokka") version "1.7.20"
+    kotlin("multiplatform")
+    id("org.jetbrains.dokka")
     `maven-publish`
     application
     signing

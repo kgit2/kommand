@@ -50,7 +50,7 @@ actual class Child actual constructor(
         val processBuilder = ProcessBuilder(command, *args.toTypedArray())
         cwd?.let { processBuilder.directory(File(it)) }
         redirectStdio(processBuilder)
-        kotlin.runCatching {
+        runCatching {
             process = processBuilder.start()
         }.onFailure {
             throw IOException(it)
