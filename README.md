@@ -79,3 +79,11 @@ Command("gradle")
     .spawn()
     .wait()
 ```
+
+## Maintainers
+
+[@BppleMan](https://github.com/BppleMan).
+
+## License
+
+[MIT](LICENSE) © BppleMan
