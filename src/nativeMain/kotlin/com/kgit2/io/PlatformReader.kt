@@ -14,9 +14,9 @@ actual class PlatformReader(file: CPointer<FILE>) {
     actual fun fill(destination: Memory, offset: Int, length: Int): Int {
         return memScoped {
             val buffer = allocArray<ByteVar>(length)
-            val read = fread(buffer, 1, length.toULong(), file)
-            buffer.copyTo(destination, offset.convert(), read.convert(), 0)
-            read.toInt()
+            val read = fread(buffer, 1, length.convert(), file)
+            destination.storeByteArray(0, buffer.readBytes(read.convert()))
+            read.convert()
         }
     }
 
@@ -26,7 +26,7 @@ actual class PlatformReader(file: CPointer<FILE>) {
             val line = fgets(buffer, length, file)
             val lineString = line?.toKString()
             val len = lineString?.length ?: 0
-            buffer.copyTo(destination, offset.convert(), len.convert(), 0)
+            destination.storeByteArray(offset.convert(), buffer.readBytes(len.convert()))
             len.convert()
         }
     }

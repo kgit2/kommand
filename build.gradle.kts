@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "0.1.4"
+version = "0.1.5"
 
 repositories {
     mavenCentral()
@@ -32,34 +32,50 @@ kotlin {
     }
     val hostOs = System.getProperty("os.name")
     val isMingw = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> {
-            if (System.getProperty("os.arch").contains("aarch64")) {
-                macosArm64("native")
-            } else {
-                macosX64("native")
-            }
-        }
-        hostOs == "Linux" -> linuxX64("native")
-        isMingw -> {
-            if (System.getenv("ProgramFiles(x86)") != null) {
-                mingwX86("native")
-            } else {
-                mingwX64("native")
-            }
-        }
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
+    // val nativeTarget = when {
+    //     hostOs == "Mac OS X" -> {
+    //         if (System.getProperty("os.arch").contains("aarch64")) {
+    //             macosArm64("native")
+    //         } else {
+    //             macosX64("native")
+    //         }
+    //     }
+    //     hostOs == "Linux" -> linuxX64("native")
+    //     isMingw -> {
+    //         if (System.getenv("ProgramFiles(x86)") != null) {
+    //             mingwX86("native")
+    //         } else {
+    //             mingwX64("native")
+    //         }
+    //     }
+    //     else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    // }
+    val mainNativeTarget = macosArm64("native")
+    val allNativeTargets = listOf(
+        mainNativeTarget,
+        macosX64(),
+        linuxX64(),
+        // mingwX86(),
+        // mingwX64(),
+    )
 
-    nativeTarget.apply {
-        binaries {
-            executable {
-                entryPoint = "main"
+    allNativeTargets.forEach {
+        it.apply {
+            binaries {
+                executable {
+                    entryPoint = "main"
+                }
             }
         }
     }
 
     sourceSets {
+        // add opt-in
+        all {
+            languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
+            // languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+        }
+
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-io:2.1.2")
@@ -77,6 +93,17 @@ kotlin {
         val jvmTest by getting
         val nativeMain by getting
         val nativeTest by getting
+
+        filter {
+            !it.name.startsWith("common")
+                    && !it.name.startsWith("jvm")
+                    && !it.name.startsWith("native")
+        }.forEach {
+            when {
+                it.name.endsWith("Main") -> it.dependsOn(nativeMain)
+                it.name.endsWith("Test") -> it.dependsOn(nativeTest)
+            }
+        }
     }
 }
 

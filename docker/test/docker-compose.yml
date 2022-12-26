@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  tester:
+    build: .
+    platform: linux/amd64
+    volumes:
+      - ../../build:/build
+    command: /bin/bash -c "/build/bin/linuxX64/debugTest/test.kexe"
