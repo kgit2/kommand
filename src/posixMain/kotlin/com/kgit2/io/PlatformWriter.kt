@@ -4,6 +4,7 @@ import io.ktor.utils.io.bits.*
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
+import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import platform.posix.FILE
 import platform.posix.fclose

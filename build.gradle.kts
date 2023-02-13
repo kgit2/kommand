@@ -1,4 +1,5 @@
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 
 plugins {
     kotlin("multiplatform")
@@ -31,7 +32,9 @@ kotlin {
     }
 
     js(IR) {
+        useCommonJs()
         binaries.library()
+        binaries.executable()
         nodejs {
 
         }
@@ -75,8 +78,16 @@ kotlin {
         val jvmMain by getting
         val jvmTest by getting
 
-        val jsMain by getting
-        val jsTest by getting
+        val jsMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-nodejs:0.0.7")
+            }
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
+        }
 
         val posixMain by creating {
             dependsOn(commonMain)

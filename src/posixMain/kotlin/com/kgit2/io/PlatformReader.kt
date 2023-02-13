@@ -21,12 +21,10 @@ actual class PlatformReader(file: CPointer<FILE>) {
     }
 
     actual fun fillLine(destination: Memory, offset: Int, length: Int): Int {
-        println("fillLine $offset $length")
         return memScoped {
             val buffer = allocArray<ByteVar>(destination.size)
             val line = fgets(buffer, length, file)
             val lineString = line?.toKString()
-            println("lineString: $lineString")
             val len = lineString?.length ?: 0
             destination.storeByteArray(offset.convert(), buffer.readBytes(len.convert()))
             len.convert()

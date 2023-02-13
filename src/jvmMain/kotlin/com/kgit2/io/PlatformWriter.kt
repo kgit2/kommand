@@ -14,6 +14,6 @@ actual class PlatformWriter(outputStream: OutputStream) {
     }
 
     actual fun close() {
-        this.outputStream?.close()
+        outputStream?.close()
     }
 }

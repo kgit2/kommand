@@ -80,12 +80,12 @@ actual class Child actual constructor(
             null
         } else {
             stdinWriter?.close()
+            Posix.waitpid(id!!, options.value)
             val output = StringBuilder()
             val reader = stdoutReader!!
             while (!reader.endOfInput) {
                 output.append(reader.readText())
             }
-            Posix.waitpid(id!!, options.value)
             stdoutReader?.close()
             stderrReader?.close()
             output.toString()

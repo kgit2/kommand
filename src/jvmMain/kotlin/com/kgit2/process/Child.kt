@@ -58,7 +58,7 @@ actual class Child actual constructor(
         this.id = process?.pid()?.toInt()
         this.stdinWriter = createWriter(stdin, process!!)
         this.stdoutReader = createReader(stdout, process!!)
-        this.stderrReader = createReader(stderr, process!!)
+        this.stderrReader = createErrorReader(stderr, process!!)
     }
 
     @Throws(IOException::class)
@@ -86,12 +86,12 @@ actual class Child actual constructor(
             null
         } else {
             stdinWriter?.close()
+            process!!.waitFor()
             val output = StringBuilder()
             val reader = stdoutReader!!
             while (!reader.endOfInput) {
                 output.append(reader.readText())
             }
-            process!!.waitFor()
             stdoutReader?.close()
             stderrReader?.close()
             output.toString()
@@ -169,6 +169,16 @@ actual class Child actual constructor(
                 Stdio.Pipe -> {
                     val inputStream = process.inputStream
                     Reader(PlatformReader(inputStream))
+                }
+            }
+        }
+
+        private fun createErrorReader(stdio: Stdio, process: Process): Reader? {
+            return when (stdio) {
+                Stdio.Inherit, Stdio.Null -> null
+                Stdio.Pipe -> {
+                    val errorStream = process.errorStream
+                    Reader(PlatformReader(errorStream))
                 }
             }
         }

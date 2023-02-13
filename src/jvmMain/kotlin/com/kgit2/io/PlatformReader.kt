@@ -25,8 +25,8 @@ actual class PlatformReader(inputStream: InputStream) {
             }
             readed += readNow
         }
-        buffer.forEachIndexed { index, c ->
-            destination.storeAt(offset + index, c.code.toByte())
+        for (i in 0 until readed) {
+            destination.storeAt(offset + i, buffer[i].code.toByte())
         }
         return readed
     }
