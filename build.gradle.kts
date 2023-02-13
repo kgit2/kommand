@@ -25,41 +25,26 @@ kotlin {
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
-
         application {
             mainClass.set("MainKt")
         }
     }
-    val hostOs = System.getProperty("os.name")
-    val isMingw = hostOs.startsWith("Windows")
-    // val nativeTarget = when {
-    //     hostOs == "Mac OS X" -> {
-    //         if (System.getProperty("os.arch").contains("aarch64")) {
-    //             macosArm64("native")
-    //         } else {
-    //             macosX64("native")
-    //         }
-    //     }
-    //     hostOs == "Linux" -> linuxX64("native")
-    //     isMingw -> {
-    //         if (System.getenv("ProgramFiles(x86)") != null) {
-    //             mingwX86("native")
-    //         } else {
-    //             mingwX64("native")
-    //         }
-    //     }
-    //     else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    // }
-    val mainNativeTarget = macosArm64("native")
-    val allNativeTargets = listOf(
-        mainNativeTarget,
+
+    js(IR) {
+        binaries.library()
+        nodejs {
+
+        }
+    }
+
+    val nativeTargets = listOf(
+        macosArm64(),
         macosX64(),
         linuxX64(),
-        // mingwX86(),
-        // mingwX64(),
+        mingwX64(),
     )
 
-    allNativeTargets.forEach {
+    nativeTargets.forEach {
         it.apply {
             binaries {
                 executable {
@@ -84,26 +69,55 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+            }
+        }
+
+        val jvmMain by getting
+        val jvmTest by getting
+
+        val jsMain by getting
+        val jsTest by getting
+
+        val posixMain by creating {
+            dependsOn(commonMain)
+        }
+        val posixTest by creating {
+            dependsOn(commonTest)
+            dependencies {
                 implementation("io.ktor:ktor-server-core:2.1.2")
                 implementation("io.ktor:ktor-server-cio:2.1.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }
         }
-        val jvmMain by getting
-        val jvmTest by getting
-        val nativeMain by getting
-        val nativeTest by getting
 
-        filter {
-            !it.name.startsWith("common")
-                    && !it.name.startsWith("jvm")
-                    && !it.name.startsWith("native")
-        }.forEach {
-            when {
-                it.name.endsWith("Main") -> it.dependsOn(nativeMain)
-                it.name.endsWith("Test") -> it.dependsOn(nativeTest)
-            }
+        val unixLikeMain by creating {
+            dependsOn(posixMain)
         }
+        val unixLikeTest by creating {
+            dependsOn(posixTest)
+        }
+        val macosArm64Main by getting {
+            dependsOn(unixLikeMain)
+        }
+        val macosArm64Test by getting {
+            dependsOn(unixLikeTest)
+        }
+        val macosX64Main by getting {
+            dependsOn(unixLikeMain)
+        }
+        val macosX64Test by getting {
+            dependsOn(unixLikeTest)
+        }
+        val linuxX64Main by getting {
+            dependsOn(unixLikeMain)
+        }
+        val linuxX64Test by getting {
+            dependsOn(unixLikeTest)
+        }
+        val mingwX64Main by getting {
+            dependsOn(posixMain)
+        }
+        val mingwX64Test by getting
     }
 }
 

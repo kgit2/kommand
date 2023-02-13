@@ -86,4 +86,4 @@ Command("gradle")
 
 ## License
 
-[MIT](LICENSE) © BppleMan
+[Apache2.0](LICENSE) © BppleMan

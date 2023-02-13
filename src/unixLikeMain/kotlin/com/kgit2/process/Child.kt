@@ -77,7 +77,6 @@ actual class Child actual constructor(
         return if (stdout != Pipe) {
             stdinWriter?.close()
             Posix.waitpid(id!!, options.value)
-            stderrReader?.close()
             null
         } else {
             stdinWriter?.close()
