@@ -7,7 +7,18 @@ import kotlin.test.assertEquals
 
 expect val subCommand: String
 
+expect fun shellTest()
+
 class CommandTest {
+
+    @Test
+    fun test() {
+        println("begin")
+        Command(subCommand)
+            .stdout(Stdio.Pipe)
+            .spawn()
+        println("end")
+    }
 
     @Test
     fun testOutput() {
@@ -71,6 +82,7 @@ class CommandTest {
         val reader = child.getChildStderr()!!
         val output = reader.readLine()
         assertEquals(expectString, output)
+        child.wait()
     }
 
     @Test
@@ -107,11 +119,6 @@ class CommandTest {
 
     @Test
     fun shTest() {
-        val output = Command("sh")
-            .args("-c", "f() { echo username=a; echo password=b; }; f get")
-            .stdout(Stdio.Pipe)
-            .spawn()
-            .waitWithOutput()
-        assertEquals("username=a\npassword=b\n", output)
+        shellTest()
     }
 }

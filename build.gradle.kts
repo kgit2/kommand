@@ -30,14 +30,14 @@ kotlin {
         }
     }
 
-    js(IR) {
-        useCommonJs()
-        binaries.library()
-        binaries.executable()
-        nodejs {
-
-        }
-    }
+    // js(IR) {
+    //     useCommonJs()
+    //     binaries.library()
+    //     binaries.executable()
+    //     nodejs {
+    //
+    //     }
+    // }
 
     val nativeTargets = listOf(
         macosArm64(),
@@ -77,16 +77,16 @@ kotlin {
         val jvmMain by getting
         val jvmTest by getting
 
-        val jsMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-nodejs:0.0.7")
-            }
-        }
-        val jsTest by getting {
-            dependencies {
-                implementation(kotlin("test-js"))
-            }
-        }
+        // val jsMain by getting {
+        //     dependencies {
+        //         implementation("org.jetbrains.kotlinx:kotlinx-nodejs:0.0.7")
+        //     }
+        // }
+        // val jsTest by getting {
+        //     dependencies {
+        //         implementation(kotlin("test-js"))
+        //     }
+        // }
 
         val posixMain by creating {
             dependsOn(commonMain)

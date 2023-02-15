@@ -7,7 +7,11 @@ import com.kgit2.io.Writer
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.Arena
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CArrayPointer
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CValue
+import kotlinx.cinterop.MemScope
 import kotlinx.cinterop.UIntVar
 import kotlinx.cinterop.UShortVar
 import kotlinx.cinterop.alloc
@@ -20,9 +24,11 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.set
 import kotlinx.cinterop.sizeOf
+import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import platform.posix.FILE
 import platform.posix._open_osfhandle
+import platform.posix.fgets
 import platform.posix.intptr_tVar
 import platform.windows.CloseHandle
 import platform.windows.CreatePipe
@@ -79,26 +85,12 @@ actual class Child actual constructor(
     }
 
     @Throws(IOException::class)
-    actual fun start(options: ChildOptions) = memScoped {
-        val saAttr = cValue<SECURITY_ATTRIBUTES>() {
-            nLength = sizeOf<SECURITY_ATTRIBUTES>().convert()
-            bInheritHandle = 1
-            lpSecurityDescriptor = null
-        }
-        val pipes = createPipe(saAttr.ptr)
+    actual fun start(options: ChildOptions): Unit = memScoped {
+        val securityAttribute = createSecurityAttribute()
+        val pipes = createPipe(securityAttribute.ptr)
+        val startupInformation = createStartUpInformation(pipes)
+        val cmdLine = createCMDLine(this)
         // create child process
-        val startupInformation = cValue<STARTUPINFO> {
-            cb = sizeOf<STARTUPINFO>().convert()
-            hStdInput = pipes.stdinPipeReaderHandle?.value
-            hStdOutput = pipes.stdoutPipeWriterHandle?.value
-            hStdError = pipes.stderrPipeWriterHandle?.value
-            dwFlags = dwFlags or STARTF_USESTDHANDLES.convert()
-        }
-        val cmdLineString = listOf(command, *args.toTypedArray()).joinToString(" ")
-        val cmdLine = allocArray<UShortVar>(cmdLineString.length.convert())
-        cmdLineString.forEachIndexed { index, c ->
-            cmdLine[index] = c.code.toUShort()
-        }
         val success = CreateProcess!!.invoke(
             null,
             cmdLine,
@@ -115,11 +107,7 @@ actual class Child actual constructor(
             val errorCode = GetLastError()
             throw IOException("CreateProcess failed: $errorCode")
         }
-        println("CreateProcess succeeded")
-        CloseHandle(pipes.stdinPipeReaderHandle?.value)
-        CloseHandle(pipes.stdoutPipeWriterHandle?.value)
-        CloseHandle(pipes.stderrPipeWriterHandle?.value)
-        WaitForSingleObject(processInformation.hProcess, INFINITE)
+        redirectPipeHandle(pipes)
         id = processInformation.dwProcessId.toInt()
         openFileDescriptor(pipes)
     }
@@ -143,7 +131,6 @@ actual class Child actual constructor(
     actual fun waitWithOutput(): String? {
         return if (stdout != Stdio.Pipe) {
             stdinWriter?.close()
-            WaitForSingleObject(processInformation.hProcess, INFINITE)
             val exitCode = memory.alloc<UIntVar>()
             GetExitCodeProcess(processInformation.hProcess, exitCode.ptr)
             CloseHandle(processInformation.hProcess)
@@ -174,58 +161,126 @@ actual class Child actual constructor(
         TODO("Not yet implemented")
     }
 
+    private fun createSecurityAttribute(): CValue<SECURITY_ATTRIBUTES> {
+        return cValue<SECURITY_ATTRIBUTES>() {
+            nLength = sizeOf<SECURITY_ATTRIBUTES>().convert()
+            bInheritHandle = 1
+            lpSecurityDescriptor = null
+        }
+    }
+
     private fun createPipe(saAttr: CPointer<SECURITY_ATTRIBUTES>): CreatePipeResult {
-        val pipe = mutableListOf<Pair<IntArray, String>>()
-        val result = CreatePipeResult()
+        val pipes = CreatePipeResult()
         when (stdin) {
-            Stdio.Pipe -> {
-                result.stdinPipeReaderHandle = memory.alloc()
-                result.stdinPipeWriterHandle = memory.alloc()
+            Stdio.Pipe, Stdio.Null -> {
+                pipes.stdinPipeReaderHandle = memory.alloc()
+                pipes.stdinPipeWriterHandle = memory.alloc()
                 // first param is read handle, second param is write handle
-                CreatePipe(result.stdinPipeReaderHandle!!.ptr, result.stdinPipeWriterHandle!!.ptr, saAttr, 0)
+                CreatePipe(pipes.stdinPipeReaderHandle!!.ptr, pipes.stdinPipeWriterHandle!!.ptr, saAttr, 0)
                 // set handle information for parent process
-                SetHandleInformation(result.stdinPipeReaderHandle!!.value, HANDLE_FLAG_INHERIT, 0)
+                SetHandleInformation(pipes.stdinPipeWriterHandle!!.value, HANDLE_FLAG_INHERIT, 0)
             }
             else -> Unit
         }
         when (stdout) {
-            Stdio.Pipe -> {
-                result.stdoutPipeReaderHandle = memory.alloc()
-                result.stdoutPipeWriterHandle = memory.alloc()
-                CreatePipe(result.stdoutPipeReaderHandle!!.ptr, result.stdoutPipeWriterHandle!!.ptr, saAttr, 0)
+            Stdio.Pipe, Stdio.Null -> {
+                pipes.stdoutPipeReaderHandle = memory.alloc()
+                pipes.stdoutPipeWriterHandle = memory.alloc()
+                CreatePipe(pipes.stdoutPipeReaderHandle!!.ptr, pipes.stdoutPipeWriterHandle!!.ptr, saAttr, 0)
                 // set handle information for parent process
-                SetHandleInformation(result.stdoutPipeWriterHandle!!.value, HANDLE_FLAG_INHERIT, 0)
+                SetHandleInformation(pipes.stdoutPipeReaderHandle!!.value, HANDLE_FLAG_INHERIT, 0)
             }
             else -> Unit
         }
         when (stderr) {
-            Stdio.Pipe -> {
-                result.stderrPipeReaderHandle = memory.alloc()
-                result.stderrPipeWriterHandle = memory.alloc()
-                CreatePipe(result.stderrPipeReaderHandle!!.ptr, result.stderrPipeWriterHandle!!.ptr, saAttr, 0)
+            Stdio.Pipe, Stdio.Null -> {
+                pipes.stderrPipeReaderHandle = memory.alloc()
+                pipes.stderrPipeWriterHandle = memory.alloc()
+                CreatePipe(pipes.stderrPipeReaderHandle!!.ptr, pipes.stderrPipeWriterHandle!!.ptr, saAttr, 0)
                 // set handle information for parent process
-                SetHandleInformation(result.stderrPipeWriterHandle!!.value, HANDLE_FLAG_INHERIT, 0)
+                SetHandleInformation(pipes.stderrPipeReaderHandle!!.value, HANDLE_FLAG_INHERIT, 0)
             }
             else -> Unit
         }
-        return result
+        return pipes
+    }
+
+    private fun createStartUpInformation(pipes: CreatePipeResult): CValue<STARTUPINFO> {
+        return cValue<STARTUPINFO> {
+            cb = sizeOf<STARTUPINFO>().convert()
+            pipes.stdinPipeReaderHandle?.let {
+                hStdInput = it.value
+            }
+            pipes.stdoutPipeWriterHandle?.let {
+                hStdOutput = it.value
+            }
+            pipes.stderrPipeWriterHandle?.let {
+                hStdError = it.value
+            }
+            if (!(stdin == Stdio.Inherit && stdout == Stdio.Inherit && stderr == Stdio.Inherit)) {
+                dwFlags = dwFlags or STARTF_USESTDHANDLES.convert()
+            }
+        }
+    }
+
+    private fun createCMDLine(memory: MemScope): CArrayPointer<UShortVar> {
+        val cmdLineString = listOf(command, *args.toTypedArray()).joinToString(" ")
+        val cmdLine = memory.allocArray<UShortVar>(cmdLineString.length.convert())
+        cmdLineString.forEachIndexed { index, c ->
+            cmdLine[index] = c.code.toUShort()
+        }
+        return cmdLine
+    }
+
+    private fun redirectPipeHandle(pipes: CreatePipeResult) {
+        when (stdin) {
+            Stdio.Pipe, Stdio.Null -> CloseHandle(pipes.stdinPipeReaderHandle!!.value)
+            Stdio.Inherit -> Unit
+        }
+
+        when (stdout) {
+            Stdio.Pipe, Stdio.Null -> CloseHandle(pipes.stdoutPipeWriterHandle!!.value)
+            Stdio.Inherit -> Unit
+        }
+
+        when (stderr) {
+            Stdio.Pipe, Stdio.Null -> CloseHandle(pipes.stderrPipeWriterHandle!!.value)
+            Stdio.Inherit -> Unit
+        }
     }
 
     private fun openFileDescriptor(pipes: CreatePipeResult) {
-        if (pipes.stdinPipeWriterHandle != null) {
-            val fd = _open_osfhandle(pipes.stdinPipeWriterHandle!!.reinterpret<intptr_tVar>().value, 0x0001)
-            val file = fdopen(fd, "w")
-            stdinWriter = Writer(PlatformWriter(file))
+        when (stdin) {
+            Stdio.Pipe -> {
+                if (pipes.stdinPipeWriterHandle != null) {
+                    val fd = _open_osfhandle(pipes.stdinPipeWriterHandle!!.reinterpret<intptr_tVar>().value, 0x0001)
+                    val file = fdopen(fd, "w")
+                    stdinWriter = Writer(PlatformWriter(file))
+                }
+            }
+            else -> Unit
         }
-        if (pipes.stdoutPipeReaderHandle != null) {
-            val fd = _open_osfhandle(pipes.stdoutPipeReaderHandle!!.reinterpret<intptr_tVar>().value, 0x0000)
-            val file = fdopen(fd, "r")
-            stdoutReader = Reader(PlatformReader(file))
+
+        when (stdout) {
+            Stdio.Pipe -> {
+                if (pipes.stdoutPipeReaderHandle != null) {
+                    val fd = _open_osfhandle(pipes.stdoutPipeReaderHandle!!.reinterpret<intptr_tVar>().value, 0x0000)
+                    val file = fdopen(fd, "r")
+                    stdoutReader = Reader(PlatformReader(file))
+                }
+            }
+            else -> Unit
         }
-        if (pipes.stderrPipeReaderHandle != null) {
-            val fd = _open_osfhandle(pipes.stderrPipeReaderHandle!!.reinterpret<intptr_tVar>().value, 0x0000)
-            val file = fdopen(fd, "r")
-            val stderrReader = Reader(PlatformReader(file))
+
+        when (stderr) {
+            Stdio.Pipe -> {
+                if (pipes.stderrPipeReaderHandle != null) {
+                    val fd = _open_osfhandle(pipes.stderrPipeReaderHandle!!.reinterpret<intptr_tVar>().value, 0x0000)
+                    val file = fdopen(fd, "r")
+                    stderrReader = Reader(PlatformReader(file))
+                }
+            }
+            else -> Unit
         }
     }
 
@@ -234,6 +289,24 @@ actual class Child actual constructor(
         return when (val file = platform.posix.fdopen(fileDescriptor, mode)) {
             null -> throw IOException("Invalid mode.")
             else -> file
+        }
+    }
+
+    // just for debug step by step
+    private fun readFromFD(stdoutReader: HANDLEVar) {
+        val fd = _open_osfhandle(stdoutReader.reinterpret<intptr_tVar>().value, 0)
+        println("fd: $fd")
+        val file = platform.posix.fdopen(fd, "r")
+        memScoped {
+            val buf = allocArray<ByteVar>(4096)
+            while (true) {
+                val result = fgets(buf, 4096, file)
+                if (result != null) {
+                    print(result.toKString())
+                } else {
+                    break
+                }
+            }
         }
     }
 }

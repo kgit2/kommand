@@ -2,7 +2,7 @@ import java.util.Scanner
 
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
-        println("Hello, Kommand!")
+        print("Hello, Kommand!\n")
         return
     }
     when (args[0]) {
@@ -17,7 +17,7 @@ fun echo() {
     val scanner = Scanner(System.`in`)
     while (scanner.hasNext()) {
         val line = scanner.nextLine()
-        println(line)
+        print("$line\n")
     }
 }
 
@@ -25,13 +25,13 @@ fun error() {
     val scanner = Scanner(System.`in`)
     while (scanner.hasNext()) {
         val line = scanner.nextLine()
-        System.err.println(line)
+        System.err.print("$line\n")
     }
 }
 
 fun interval(count: Int?) {
     repeat(count ?: 5) {
-        println(it)
+        print("$it\n")
         Thread.sleep(100)
     }
 }
