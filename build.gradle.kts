@@ -1,5 +1,4 @@
 import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 
 plugins {
     kotlin("multiplatform")
@@ -129,6 +128,13 @@ kotlin {
             dependsOn(posixMain)
         }
         val mingwX64Test by getting
+    }
+}
+
+val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
+tasks.forEach {
+    if (it.group == "verification") {
+        it.dependsOn(subCommandInstallDist)
     }
 }
 
