@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "0.1.5"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
