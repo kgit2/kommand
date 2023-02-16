@@ -2,11 +2,19 @@
 
 # Kommand
 
-Kotlin Native library for run external command
+Kotlin Native library for create subprocesses and handle their I/O.
+
+# Supported Platforms
+
+- macOS-x64
+- macOS-arm64
+- Linux-x64
+- Mingw-x64
+- JVM
 
 # Architecture
 
-![architecture](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/architecture.png)
+![architecture](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/architecture_2.0.png)
 
 # Dependent
 
@@ -14,9 +22,13 @@ Kotlin Native library for run external command
 - Based on the `ktor-io`, Inter-Process Communication(IPC) can be handled using pipes
 - Kotlin Multiplatform 1.7.20 with new memory manager
 
-- ### Native for macOS/Linux/Mingw
+- ### Native for macOS/Linux
 
     System calls using POSIX api
+
+- ### Native for Mingw
+
+    System calls using Win32 api
 
 - ### JVM
 
@@ -84,6 +96,12 @@ Command("gradle")
 
 [@BppleMan](https://github.com/BppleMan).
 
+[@XJMiada](https://github.com/XJMiada).(Original Picture)
+
 ## License
 
 [Apache2.0](LICENSE) © BppleMan
+
+## Credits
+
+- [![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://jb.gg/OpenSourceSupport)
