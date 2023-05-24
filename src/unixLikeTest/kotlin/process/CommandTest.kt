@@ -1,65 +1,47 @@
-// package process
-//
-// import com.kgit2.process.Command
-// import com.kgit2.process.Stdio
-// import kotlinx.coroutines.Dispatchers
-// import kotlinx.coroutines.runBlocking
-// import kotlinx.coroutines.withContext
-// import server.startServer
-// import kotlin.test.Test
-// import kotlin.test.assertEquals
-//
-// class CommandTest {
-//     @Test
-//     fun curlCommand() = runBlocking<Unit> {
-//         val expectString = "Hello, world!"
-//         val port = 8080
-//         val result = withContext(Dispatchers.Default) {
-//             startServer(port, expectString)
-//         }
-//         val output = Command("curl")
-//             .args("-s", "http://localhost:${port}/")
-//             .stdout(Stdio.Pipe)
-//             .spawn()
-//             .waitWithOutput()
-//         assertEquals(expectString, output)
-//     }
-//
-//     @Test
-//     fun pingCommand() {
-//         val output = Command("ping")
-//             .args("-c", "5", "localhost")
-//             .stdout(Stdio.Pipe)
-//             .spawn()
-//             .waitWithOutput()
-//         val expectLineCount = 11
-//         val lineCount = output?.lines()?.count()
-//         assertEquals(expectLineCount, lineCount)
-//     }
-//
-//     @Test
-//     fun pingCommandForEachLine() {
-//         val expectLineCount = 10
-//         var lineCount = 0
-//         Command("ping")
-//             .args("-c", "5", "localhost")
-//             .stdout(Stdio.Pipe)
-//             .spawn()
-//             .getChildStdout()
-//             ?.lines()?.forEach {
-//                 println(it)
-//                 lineCount += 1
-//             }
-//         assertEquals(expectLineCount, lineCount)
-//     }
-//
-//     @Test
-//     fun shTest() {
-//         val output = Command("sh")
-//             .args("-c", "f() { echo username=a; echo password=b; }; f get")
-//             .stdout(Stdio.Pipe)
-//             .spawn()
-//             .waitWithOutput()
-//         assertEquals("username=a\npassword=b\n", output)
-//     }
-// }
+package process
+import com.kgit2.process.Command
+import com.kgit2.process.Stdio
+import kotlin.test.Test
+import kotlin.test.assertTrue
+
+class CommandTest {
+    fun outputWithExitCodeTest() {
+        @Test
+        fun tempTest() {
+            val executor = Command("ping")
+                .arg("-c")
+                .args("5", "localhost")
+                .stdout(Stdio.Pipe)
+                .spawn()
+            val stdoutReader = executor.getChildStdout()!!
+            val sb = StringBuilder()
+            stdoutReader.lines().forEach {
+                // do something
+                sb.appendLine(it)
+            }
+            val exitStatus = runCatching {
+                executor.wait()
+            }
+            assertTrue(exitStatus.isSuccess)
+        }
+    }
+
+    @Test
+    fun pipeTest() {
+        val child1 = Command("zsh")
+            .args("-c", "unset count; count=0; while ((count < 10)) do ((count += 1));echo from child1:${"$"}count;done")
+            .stdout(Stdio.Pipe)
+            .spawn()
+        val child2 = Command("zsh")
+            .args("-c", "while read line; do echo from child2:${"$"}line; done")
+            .stdin(Stdio.Pipe)
+            .stdout(Stdio.Inherit)
+            .spawn()
+        val child1StdoutReader = child1.getChildStdout()!!
+        val child2StdinWriter = child2.getChildStdin()!!
+        child1StdoutReader.lines().forEach {
+            child2StdinWriter.appendLine(it)
+        }
+        child2StdinWriter.close()
+    }
+}
