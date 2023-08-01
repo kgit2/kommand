@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     mavenCentral()
@@ -25,19 +25,7 @@ kotlin {
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
-        application {
-            mainClass.set("MainKt")
-        }
     }
-
-    // js(IR) {
-    //     useCommonJs()
-    //     binaries.library()
-    //     binaries.executable()
-    //     nodejs {
-    //
-    //     }
-    // }
 
     val nativeTargets = listOf(
         macosArm64(),
@@ -45,16 +33,6 @@ kotlin {
         linuxX64(),
         mingwX64(),
     )
-
-    nativeTargets.forEach {
-        it.apply {
-            binaries {
-                executable {
-                    entryPoint = "main"
-                }
-            }
-        }
-    }
 
     sourceSets {
         // add opt-in
@@ -76,17 +54,6 @@ kotlin {
 
         val jvmMain by getting
         val jvmTest by getting
-
-        // val jsMain by getting {
-        //     dependencies {
-        //         implementation("org.jetbrains.kotlinx:kotlinx-nodejs:0.0.7")
-        //     }
-        // }
-        // val jsTest by getting {
-        //     dependencies {
-        //         implementation(kotlin("test-js"))
-        //     }
-        // }
 
         val posixMain by creating {
             dependsOn(commonMain)
