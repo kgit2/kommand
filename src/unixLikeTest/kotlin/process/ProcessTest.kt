@@ -4,26 +4,25 @@ import com.kgit2.process.Stdio
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class CommandTest {
-    fun outputWithExitCodeTest() {
-        @Test
-        fun tempTest() {
-            val executor = Command("ping")
-                .arg("-c")
-                .args("5", "localhost")
-                .stdout(Stdio.Pipe)
-                .spawn()
-            val stdoutReader = executor.getChildStdout()!!
-            val sb = StringBuilder()
-            stdoutReader.lines().forEach {
-                // do something
-                sb.appendLine(it)
-            }
-            val exitStatus = runCatching {
-                executor.wait()
-            }
-            assertTrue(exitStatus.isSuccess)
+class ProcessTest {
+    @Test
+    fun pingTest() {
+        val executor = Command("ping")
+            .arg("-c")
+            .args("5", "localhost")
+            .stdout(Stdio.Pipe)
+            .spawn()
+        val stdoutReader = executor.getChildStdout()!!
+        val lines = mutableListOf<String>()
+        stdoutReader.lines().forEach {
+            // do something
+            println(it)
+            lines.add(it)
         }
+        val exitStatus = runCatching {
+            executor.wait()
+        }
+        assertTrue(exitStatus.isSuccess)
     }
 
     @Test

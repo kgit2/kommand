@@ -3,6 +3,9 @@ package com.kgit2.io
 import io.ktor.utils.io.bits.*
 import java.io.BufferedReader
 import java.io.InputStream
+import java.util.LinkedList
+import java.util.Queue
+import kotlin.math.min
 
 actual class PlatformReader(inputStream: InputStream) {
     private var inputStream: BufferedReader? = null
@@ -15,35 +18,28 @@ actual class PlatformReader(inputStream: InputStream) {
         inputStream?.close()
     }
 
-    actual fun fill(destination: Memory, offset: Int, length: Int): Int {
-        val buffer = CharArray(length)
-        var readed = 0
-        while (length > readed && inputStream?.ready() == true) {
-            val readNow = inputStream?.read(buffer, readed, length - readed) ?: 0
-            if (readNow == -1) {
-                break
-            }
-            readed += readNow
-        }
-        for (i in 0 until readed) {
-            destination.storeAt(offset + i, buffer[i].code.toByte())
-        }
-        return readed
-    }
+    private val buffer: Queue<Byte> = LinkedList()
 
-    actual fun fillLine(destination: Memory, offset: Int, length: Int): Int {
-        return try {
-            val line = inputStream?.readLine() ?: return 0
-            var readed = 0
-            line.forEachIndexed { index, c ->
-                destination.storeAt(offset + index, c.code.toByte())
+    actual fun fill(destination: Memory, offset: Int, length: Int): Int {
+        var readed = 0
+        val migrateBuffer = {
+            for (i in 0 until min(length, buffer.size)) {
+                destination.storeAt(offset + i, buffer.poll())
                 readed += 1
             }
-            destination.storeAt(offset + readed, 10)
-            readed += 1
-            readed
-        } catch (e: Exception) {
-            0
         }
+        when {
+            length < buffer.size -> {
+                println("length < buffer.size")
+                migrateBuffer()
+            }
+            else -> {
+                inputStream?.readLine()?.apply {
+                    buffer.addAll("$this\n".toByteArray(Charsets.UTF_8).toList())
+                }
+                migrateBuffer()
+            }
+        }
+        return readed
     }
 }
