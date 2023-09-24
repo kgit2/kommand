@@ -17,7 +17,7 @@ fun echo() {
     val scanner = Scanner(System.`in`)
     while (scanner.hasNext()) {
         val line = scanner.nextLine()
-        print("$line\n")
+        println(line)
     }
 }
 
@@ -25,13 +25,13 @@ fun error() {
     val scanner = Scanner(System.`in`)
     while (scanner.hasNext()) {
         val line = scanner.nextLine()
-        System.err.print("$line\n")
+        System.err.println(line)
     }
 }
 
 fun interval(count: Int?) {
     repeat(count ?: 5) {
-        print("$it\n")
+        println(it)
         Thread.sleep(100)
     }
 }
