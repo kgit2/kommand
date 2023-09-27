@@ -161,3 +161,7 @@ just --list
 ## Credits
 
 - [![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://jb.gg/OpenSourceSupport)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=kgit2/kommand&type=Date&theme=dark)](https://star-history.com/#kgit2/kommand&Date)
