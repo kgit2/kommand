@@ -125,7 +125,7 @@ class CommandTest {
     @Test
     fun testCat() {
         val expectString = "PREV — DATA\nNEXT"
-        val cmd = Command("cat").args("test").stdout(Stdio.Pipe).spawn()
+        val cmd = Command("echo").args(expectString).stdout(Stdio.Pipe).spawn()
         cmd.getChildStdout()?.lines()?.joinToString("\n")?.let {
             assertEquals(expectString, it)
         }

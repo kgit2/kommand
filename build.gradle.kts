@@ -108,69 +108,78 @@ tasks.forEach {
 val ossrhUrl: String = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
 val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-val ossrhUsername: String by project
-val ossrhPassword: String by project
+val ossrhUsername = runCatching {
+    val ossrhUsername: String by project
+    ossrhUsername
+}.getOrNull()
 
-val keyId = project.findProperty("signing.keyId") as String?
-val keyPass = project.findProperty("signing.password") as String?
-val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
+val ossrhPassword = runCatching {
+    val ossrhPassword: String by project
+    ossrhPassword
+}.getOrNull()
 
-val dokkaOutputDir = "$buildDir/dokka"
+if (ossrhUsername != null && ossrhPassword != null) {
+    val keyId = project.findProperty("signing.keyId") as String?
+    val keyPass = project.findProperty("signing.password") as String?
+    val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
 
-tasks.getByName<DokkaTask>("dokkaHtml") {
-    outputDirectory.set(file(dokkaOutputDir))
-}
+    val dokkaOutputDir = "$buildDir/dokka"
 
-val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
-    delete(dokkaOutputDir)
-}
+    tasks.getByName<DokkaTask>("dokkaHtml") {
+        outputDirectory.set(file(dokkaOutputDir))
+    }
 
-val javadocJar = tasks.register<Jar>("javadocJar") {
-    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaOutputDir)
-}
+    val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
+        delete(dokkaOutputDir)
+    }
 
-publishing {
-    repositories {
-        mavenLocal()
-        maven {
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-            credentials {
-                username = ossrhUsername
-                password = ossrhPassword
+    val javadocJar = tasks.register<Jar>("javadocJar") {
+        dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
+        archiveClassifier.set("javadoc")
+        from(dokkaOutputDir)
+    }
+
+    publishing {
+        repositories {
+            mavenLocal()
+            maven {
+                url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+                credentials {
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
             }
         }
-    }
-    publications {
-        withType<MavenPublication> {
-            artifact(javadocJar.get())
-            pom {
-                name.set("kommand")
-                description.set("A simple process library for Kotlin Multiplatform")
-                url.set("https://github.com/kgit2/kommand")
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                scm {
-                    connection.set("https://github.com/kgit2/kommand.git")
+        publications {
+            withType<MavenPublication> {
+                artifact(javadocJar.get())
+                pom {
+                    name.set("kommand")
+                    description.set("A simple process library for Kotlin Multiplatform")
                     url.set("https://github.com/kgit2/kommand")
-                }
-                developers {
-                    developer {
-                        id.set("BppleMan")
-                        name.set("BppleMan")
-                        email.set("bppleman@gmail.com")
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    scm {
+                        connection.set("https://github.com/kgit2/kommand.git")
+                        url.set("https://github.com/kgit2/kommand")
+                    }
+                    developers {
+                        developer {
+                            id.set("BppleMan")
+                            name.set("BppleMan")
+                            email.set("bppleman@gmail.com")
+                        }
                     }
                 }
             }
         }
     }
-}
 
-signing {
-    sign(publishing.publications)
+    signing {
+        sign(publishing.publications)
+    }
 }
