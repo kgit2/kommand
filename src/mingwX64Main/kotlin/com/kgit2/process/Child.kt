@@ -176,9 +176,9 @@ actual class Child actual constructor(
                 pipes.stdinPipeReaderHandle = memory.alloc()
                 pipes.stdinPipeWriterHandle = memory.alloc()
                 // first param is read handle, second param is write handle
-                CreatePipe(pipes.stdinPipeReaderHandle!!.ptr, pipes.stdinPipeWriterHandle!!.ptr, saAttr, 0)
+                CreatePipe(pipes.stdinPipeReaderHandle!!.ptr, pipes.stdinPipeWriterHandle!!.ptr, saAttr, 0u)
                 // set handle information for parent process
-                SetHandleInformation(pipes.stdinPipeWriterHandle!!.value, HANDLE_FLAG_INHERIT, 0)
+                SetHandleInformation(pipes.stdinPipeWriterHandle!!.value, HANDLE_FLAG_INHERIT.convert(), 0u)
             }
             else -> Unit
         }
@@ -186,9 +186,9 @@ actual class Child actual constructor(
             Stdio.Pipe, Stdio.Null -> {
                 pipes.stdoutPipeReaderHandle = memory.alloc()
                 pipes.stdoutPipeWriterHandle = memory.alloc()
-                CreatePipe(pipes.stdoutPipeReaderHandle!!.ptr, pipes.stdoutPipeWriterHandle!!.ptr, saAttr, 0)
+                CreatePipe(pipes.stdoutPipeReaderHandle!!.ptr, pipes.stdoutPipeWriterHandle!!.ptr, saAttr, 0u)
                 // set handle information for parent process
-                SetHandleInformation(pipes.stdoutPipeReaderHandle!!.value, HANDLE_FLAG_INHERIT, 0)
+                SetHandleInformation(pipes.stdoutPipeReaderHandle!!.value, HANDLE_FLAG_INHERIT.convert(), 0u)
             }
             else -> Unit
         }
@@ -196,9 +196,9 @@ actual class Child actual constructor(
             Stdio.Pipe, Stdio.Null -> {
                 pipes.stderrPipeReaderHandle = memory.alloc()
                 pipes.stderrPipeWriterHandle = memory.alloc()
-                CreatePipe(pipes.stderrPipeReaderHandle!!.ptr, pipes.stderrPipeWriterHandle!!.ptr, saAttr, 0)
+                CreatePipe(pipes.stderrPipeReaderHandle!!.ptr, pipes.stderrPipeWriterHandle!!.ptr, saAttr, 0u)
                 // set handle information for parent process
-                SetHandleInformation(pipes.stderrPipeReaderHandle!!.value, HANDLE_FLAG_INHERIT, 0)
+                SetHandleInformation(pipes.stderrPipeReaderHandle!!.value, HANDLE_FLAG_INHERIT.convert(), 0u)
             }
             else -> Unit
         }

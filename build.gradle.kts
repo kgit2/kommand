@@ -21,7 +21,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = "11"
         }
         withJava()
         testRuns["test"].executionTask.configure {
@@ -41,12 +41,13 @@ kotlin {
         // add opt-in
         all {
             languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
+            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
             // languageSettings.optIn("kotlin.ExperimentalStdlibApi")
         }
 
         val commonMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-io:$ktorIO")
+                implementation("io.ktor:ktor-io:2.3.4")
             }
         }
         val commonTest by getting {
@@ -64,8 +65,8 @@ kotlin {
         val posixTest by creating {
             dependsOn(commonTest)
             dependencies {
-                implementation("io.ktor:ktor-server-core:2.1.2")
-                implementation("io.ktor:ktor-server-cio:2.1.2")
+                implementation("io.ktor:ktor-server-core:2.3.4")
+                implementation("io.ktor:ktor-server-cio:2.3.4")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }
         }
@@ -109,7 +110,7 @@ kotlin {
 
 val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
 tasks.forEach {
-    if (it.group == "verification") {
+    if (it.group == "verification" || it.path.contains("Test")) {
         it.dependsOn(subCommandInstallDist)
     }
 }
