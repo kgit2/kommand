@@ -9,7 +9,9 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "1.0.3"
+version = "1.0.4"
+
+val ktorIO = "2.3.4"
 
 repositories {
     mavenCentral()
@@ -31,6 +33,7 @@ kotlin {
         macosArm64(),
         macosX64(),
         linuxX64(),
+        linuxArm64(),
         mingwX64(),
     )
 
@@ -43,7 +46,7 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-io:2.1.2")
+                implementation("io.ktor:ktor-io:$ktorIO")
             }
         }
         val commonTest by getting {
@@ -89,6 +92,12 @@ kotlin {
             dependsOn(unixLikeMain)
         }
         val linuxX64Test by getting {
+            dependsOn(unixLikeTest)
+        }
+        val linuxArm64Main by getting {
+            dependsOn(unixLikeMain)
+        }
+        val linuxArm64Test by getting {
             dependsOn(unixLikeTest)
         }
         val mingwX64Main by getting {
