@@ -77,12 +77,10 @@ class CommandTest {
             .spawn()
         val writer = child.getChildStdin()!!
         writer.appendLine(expectString)
-        writer.flush()
         writer.close()
         val reader = child.getChildStderr()!!
         val output = reader.readLine()
         assertEquals(expectString, output)
-        child.wait()
     }
 
     @Test
