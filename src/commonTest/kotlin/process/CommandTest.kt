@@ -5,7 +5,7 @@ import com.kgit2.process.Stdio
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-expect val subCommand: String
+expect val eko: String
 
 expect fun shellTest()
 
@@ -14,7 +14,7 @@ class CommandTest {
     @Test
     fun test() {
         println("begin")
-        Command(subCommand)
+        Command(eko)
             .stdout(Stdio.Pipe)
             .spawn()
         println("end")
@@ -23,7 +23,7 @@ class CommandTest {
     @Test
     fun testOutput() {
         val expectString = "Hello, Kommand!\n"
-        val output = Command(subCommand)
+        val output = Command(eko)
             .stdout(Stdio.Pipe)
             .spawn()
             .waitWithOutput()
@@ -33,8 +33,8 @@ class CommandTest {
     @Test
     fun testEcho() {
         val expectString = "Hello, Kommand!"
-        val child = Command(subCommand)
-            .args("echo")
+        val child = Command(eko)
+            .args("stdout")
             .stdin(Stdio.Pipe)
             .stdout(Stdio.Pipe)
             .spawn()
@@ -49,8 +49,8 @@ class CommandTest {
     @Test
     fun testEchoMultiLine() {
         val expectString = "Hello, Kommand!"
-        val child = Command(subCommand)
-            .args("echo")
+        val child = Command(eko)
+            .args("stdout")
             .stdin(Stdio.Pipe)
             .stdout(Stdio.Pipe)
             .spawn()
@@ -70,8 +70,8 @@ class CommandTest {
     @Test
     fun testError() {
         val expectString = "Hello, Kommand!"
-        val child = Command(subCommand)
-            .args("error")
+        val child = Command(eko)
+            .args("stderr")
             .stdin(Stdio.Pipe)
             .stderr(Stdio.Pipe)
             .spawn()
@@ -89,7 +89,7 @@ class CommandTest {
     fun testInterval() {
         val expectLineCount = 5
         var lineCount = 0
-        Command(subCommand)
+        Command(eko)
             .args("interval")
             .stdout(Stdio.Pipe)
             .spawn()
@@ -105,7 +105,7 @@ class CommandTest {
     fun testIntervalWithArgs() {
         val expectLineCount = 10
         var lineCount = 0
-        Command(subCommand)
+        Command(eko)
             .args("interval", "10")
             .stdout(Stdio.Pipe)
             .spawn()

@@ -109,9 +109,21 @@ kotlin {
 }
 
 val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
+
+val buildEko = tasks.create("buildEko") {
+    group = "build"
+    doLast {
+        ProcessBuilder("cargo", "build", "--release")
+            .directory(file("eko"))
+            .inheritIO()
+            .start()
+            .waitFor()
+    }
+}
+
 tasks.forEach {
     if (it.group == "verification" || it.path.contains("Test")) {
-        it.dependsOn(subCommandInstallDist)
+        it.dependsOn(buildEko)
     }
 }
 

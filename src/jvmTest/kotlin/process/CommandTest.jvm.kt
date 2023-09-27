@@ -20,11 +20,17 @@ val os: OS? = if (osName.contains("win")) {
     OS.MAC
 } else null
 
-actual val subCommand: String =
+actual val eko: String =
     when (os) {
-        OS.WIN -> "sub_command/build/install/sub_command/bin/sub_command.bat"
-        else -> "sub_command/build/install/sub_command/bin/sub_command"
+        OS.WIN -> "eko/target/release/eko.exe"
+        else -> "eko/target/release/eko"
     }
+
+// actual val subCommand: String =
+//     when (os) {
+//         OS.WIN -> "sub_command/build/install/sub_command/bin/sub_command.bat"
+//         else -> "sub_command/build/install/sub_command/bin/sub_command"
+//     }
 
 actual fun shellTest() {
     when (os) {
