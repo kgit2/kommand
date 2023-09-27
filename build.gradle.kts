@@ -9,7 +9,9 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "1.0.3"
+version = "1.1.0"
+
+val ktorIO = "2.3.4"
 
 repositories {
     mavenCentral()
@@ -19,7 +21,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = "11"
         }
         withJava()
         testRuns["test"].executionTask.configure {
@@ -31,6 +33,7 @@ kotlin {
         macosArm64(),
         macosX64(),
         linuxX64(),
+        linuxArm64(),
         mingwX64(),
     )
 
@@ -38,12 +41,13 @@ kotlin {
         // add opt-in
         all {
             languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
+            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
             // languageSettings.optIn("kotlin.ExperimentalStdlibApi")
         }
 
         val commonMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-io:2.1.2")
+                implementation("io.ktor:ktor-io:2.3.4")
             }
         }
         val commonTest by getting {
@@ -61,8 +65,8 @@ kotlin {
         val posixTest by creating {
             dependsOn(commonTest)
             dependencies {
-                implementation("io.ktor:ktor-server-core:2.1.2")
-                implementation("io.ktor:ktor-server-cio:2.1.2")
+                implementation("io.ktor:ktor-server-core:2.3.4")
+                implementation("io.ktor:ktor-server-cio:2.3.4")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }
         }
@@ -91,6 +95,12 @@ kotlin {
         val linuxX64Test by getting {
             dependsOn(unixLikeTest)
         }
+        val linuxArm64Main by getting {
+            dependsOn(unixLikeMain)
+        }
+        val linuxArm64Test by getting {
+            dependsOn(unixLikeTest)
+        }
         val mingwX64Main by getting {
             dependsOn(posixMain)
         }
@@ -99,78 +109,100 @@ kotlin {
 }
 
 val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
+
+val buildEko = tasks.create("buildEko") {
+    group = "build"
+    doLast {
+        println(file("eko"))
+        ProcessBuilder("sh", "-c", "cargo build --release")
+            .directory(file("eko"))
+            .inheritIO()
+            .start()
+            .waitFor()
+    }
+}
+
 tasks.forEach {
-    if (it.group == "verification") {
-        it.dependsOn(subCommandInstallDist)
+    if (it.group == "verification" || it.path.contains("Test")) {
+        // it.dependsOn(buildEko)
     }
 }
 
 val ossrhUrl: String = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
 val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-val ossrhUsername: String by project
-val ossrhPassword: String by project
+val ossrhUsername = runCatching {
+    val ossrhUsername: String by project
+    ossrhUsername
+}.getOrNull()
 
-val keyId = project.findProperty("signing.keyId") as String?
-val keyPass = project.findProperty("signing.password") as String?
-val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
+val ossrhPassword = runCatching {
+    val ossrhPassword: String by project
+    ossrhPassword
+}.getOrNull()
 
-val dokkaOutputDir = "$buildDir/dokka"
+if (ossrhUsername != null && ossrhPassword != null) {
+    val keyId = project.findProperty("signing.keyId") as String?
+    val keyPass = project.findProperty("signing.password") as String?
+    val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
 
-tasks.getByName<DokkaTask>("dokkaHtml") {
-    outputDirectory.set(file(dokkaOutputDir))
-}
+    val dokkaOutputDir = "$buildDir/dokka"
 
-val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
-    delete(dokkaOutputDir)
-}
+    tasks.getByName<DokkaTask>("dokkaHtml") {
+        outputDirectory.set(file(dokkaOutputDir))
+    }
 
-val javadocJar = tasks.register<Jar>("javadocJar") {
-    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaOutputDir)
-}
+    val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
+        delete(dokkaOutputDir)
+    }
 
-publishing {
-    repositories {
-        mavenLocal()
-        maven {
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-            credentials {
-                username = ossrhUsername
-                password = ossrhPassword
+    val javadocJar = tasks.register<Jar>("javadocJar") {
+        dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
+        archiveClassifier.set("javadoc")
+        from(dokkaOutputDir)
+    }
+
+    publishing {
+        repositories {
+            mavenLocal()
+            maven {
+                url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+                credentials {
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
             }
         }
-    }
-    publications {
-        withType<MavenPublication> {
-            artifact(javadocJar.get())
-            pom {
-                name.set("kommand")
-                description.set("A simple process library for Kotlin Multiplatform")
-                url.set("https://github.com/kgit2/kommand")
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                scm {
-                    connection.set("https://github.com/kgit2/kommand.git")
+        publications {
+            withType<MavenPublication> {
+                artifact(javadocJar.get())
+                pom {
+                    name.set("kommand")
+                    description.set("A simple process library for Kotlin Multiplatform")
                     url.set("https://github.com/kgit2/kommand")
-                }
-                developers {
-                    developer {
-                        id.set("BppleMan")
-                        name.set("BppleMan")
-                        email.set("bppleman@gmail.com")
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    scm {
+                        connection.set("https://github.com/kgit2/kommand.git")
+                        url.set("https://github.com/kgit2/kommand")
+                    }
+                    developers {
+                        developer {
+                            id.set("BppleMan")
+                            name.set("BppleMan")
+                            email.set("bppleman@gmail.com")
+                        }
                     }
                 }
             }
         }
     }
-}
 
-signing {
-    sign(publishing.publications)
+    signing {
+        sign(publishing.publications)
+    }
 }

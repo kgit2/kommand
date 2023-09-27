@@ -6,15 +6,16 @@ Kotlin Native library for create subprocesses and handle their I/O.
 
 # Supported Platforms
 
-- macOS-x64
-- macOS-arm64
-- Linux-x64
-- Mingw-x64
+- macOS-X64
+- macOS-Arm64
+- linux-X64
+- linux-Arm64
+- mingw-X64
 - JVM
 
 # Architecture
 
-![architecture](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/architecture_2.0.png)
+![architecture](assets/architecture_3.0.png)
 
 # Dependent
 
@@ -90,6 +91,61 @@ Command("gradle")
     .stdout(Stdio.Null)
     .spawn()
     .wait()
+```
+
+## Build
+
+### 1. clone this repo
+
+```bash
+git clone https://github.com/kgit2/kommand.gi
+```
+Then you can build it with gradle
+
+```bash
+./gradlew build
+```
+
+> If you want to unit test it, go on.
+
+### 2. install dependencies
+
+* install rust toolchain
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+* install cross & justfile
+
+```bash
+cargo install cross justfile
+```
+
+* install docker
+
+[Install Docker Engine](https://docs.docker.com/engine/install/)
+
+* build `eko`
+
+```bash
+cd eko
+just prepare # install some toolchains
+just all # for all platforms
+# also can build for specific platform
+just macosX64
+just linuxX64
+#or else
+just --list
+```
+* test it
+
+```bash
+just linuxX64Test
+# or
+just macosX64Test
+# or else
+just --list
 ```
 
 ## Maintainers

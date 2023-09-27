@@ -1,0 +1,25 @@
+#!/usr/bin/env just --justfile
+
+release:
+    cargo build --release
+
+macosX64:
+    cargo build --release --target x86_64-apple-darwin
+
+macosArm64:
+    cargo build --release --target aarch64-apple-darwin
+
+linuxX64:
+    CROSS_ROOTLESS_CONTAINER_ENGINE=1 cross build --release --target x86_64-unknown-linux-gnu
+
+linuxArm64:
+    CROSS_ROOTLESS_CONTAINER_ENGINE=1 cross build --release --target aarch64-unknown-linux-gnu
+
+windowsX64:
+    CROSS_ROOTLESS_CONTAINER_ENGINE=1 cross build --release --target x86_64-pc-windows-gnu
+
+all: macosX64 macosArm64 linuxX64 linuxArm64 windowsX64
+
+prepare:
+    cargo install cross
+    rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-apple-darwin aarch64-apple-darwin x86_64-pc-windows-gnu

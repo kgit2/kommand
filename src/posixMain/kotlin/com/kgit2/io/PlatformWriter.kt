@@ -4,7 +4,6 @@ import io.ktor.utils.io.bits.*
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
-import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import platform.posix.FILE
 import platform.posix.fclose
@@ -18,7 +17,7 @@ actual class PlatformWriter(file: CPointer<FILE>) {
         val buffer = ByteArray(length)
         source.copyTo(buffer, offset, length, 0)
         buffer.usePinned {
-            fwrite(it.addressOf(0), 1, length.convert(), file)
+            fwrite(it.addressOf(0), 1u, length.convert(), file)
         }
         fflush(file)
     }
