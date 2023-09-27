@@ -10,10 +10,10 @@ macosArm64:
     cargo build --release --target aarch64-apple-darwin
 
 linuxX64:
-    cross build --release --target x86_64-unknown-linux-gnu
+    CROSS_ROOTLESS_CONTAINER_ENGINE=1 cross build --release --target x86_64-unknown-linux-gnu
 
 linuxArm64:
-    cross build --release --target aarch64-unknown-linux-gnu
+    CROSS_ROOTLESS_CONTAINER_ENGINE=1 cross build --release --target aarch64-unknown-linux-gnu
 
 windowsX64:
     cross build --release --target x86_64-pc-windows-gnu
