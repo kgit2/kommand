@@ -81,6 +81,7 @@ val lines: Sequence<String> = stdoutReader?.lines()
 lines.forEach { 
     println(it)
 }
+child.wait()
 ```
 
 ### Null I/O
