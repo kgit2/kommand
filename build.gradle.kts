@@ -113,8 +113,7 @@ val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
 val buildEko = tasks.create("buildEko") {
     group = "build"
     doLast {
-        println(file("eko"))
-        ProcessBuilder("sh", "-c", "cargo build --release")
+        ProcessBuilder("bash", "-c", "cargo build --release")
             .directory(file("eko"))
             .inheritIO()
             .start()

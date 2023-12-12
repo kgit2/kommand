@@ -2,6 +2,7 @@ package process
 
 import com.kgit2.process.Command
 import com.kgit2.process.Stdio
+import java.io.File
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -44,4 +45,12 @@ actual fun shellTest() {
             assertEquals("username=a\npassword=b\n", output)
         }
     }
+}
+
+actual fun envVar(key: String): String? {
+    return System.getenv(key)
+}
+
+actual fun tempDir(): String? {
+    return envVar("TMPDIR")
 }

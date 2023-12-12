@@ -95,6 +95,24 @@ object Posix {
     }
 
     @Throws(IOException::class)
+    fun chdir(path: String) {
+        if (platform.posix.chdir(path) != 0) {
+            when (platform.posix.errno) {
+                EACCES -> throw IOException("Search permission is denied for one of the components of path.")
+                EFAULT -> throw IOException("path points outside your accessible address space.")
+                EIO -> throw IOException("An I/O error occurred.")
+                ELOOP -> throw IOException("Too many symbolic links were encountered in resolving path.")
+                ENAMETOOLONG -> throw IOException("path is too long.")
+                ENOENT -> throw IOException("The directory specified in path does not exist.")
+                ENOMEM -> throw IOException("Insufficient kernel memory was available.")
+                ENOTDIR -> throw IOException("A component of the path prefix is not a directory.")
+                EBADF -> throw IOException("fd is not a valid file descriptor.")
+                else -> Unit
+            }
+        }
+    }
+
+    @Throws(IOException::class)
     fun execvp(commands: List<String?>) {
         memScoped {
             platform.posix.execvp(commands[0], allocArrayOf(commands.map { it?.cstr?.getPointer(memScope) }))

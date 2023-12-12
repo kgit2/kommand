@@ -90,6 +90,7 @@ actual class Child actual constructor(
         val pipes = createPipe(securityAttribute.ptr)
         val startupInformation = createStartUpInformation(pipes)
         val cmdLine = createCMDLine(this)
+        val cwd = createCurrentDirectory(this)
         // create child process
         val success = CreateProcess!!.invoke(
             null,
@@ -99,7 +100,7 @@ actual class Child actual constructor(
             1,
             0u,
             null,
-            null,
+            cwd,
             startupInformation.ptr,
             processInformation.ptr
         )
@@ -230,6 +231,16 @@ actual class Child actual constructor(
             cmdLine[index] = c.code.toUShort()
         }
         return cmdLine
+    }
+
+    private fun createCurrentDirectory(memory: MemScope): CPointer<UShortVar>? {
+        return cwd?.let {
+            val currentDirectory = memory.allocArray<UShortVar>(it.length.convert())
+            it.forEachIndexed { index, c ->
+                currentDirectory[index] = c.code.toUShort()
+            }
+            currentDirectory
+        }
     }
 
     private fun redirectPipeHandle(pipes: CreatePipeResult) {

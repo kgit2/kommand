@@ -102,6 +102,9 @@ actual class Child actual constructor(
     private fun processChild(childPid: Int) {
         if (childPid == 0) {
             redirectFileDescriptor()
+            if (cwd != null) {
+                Posix.chdir(cwd)
+            }
             val commands = listOf(command, *args.toTypedArray(), null)
             Posix.execvp(commands)
         }
