@@ -5,8 +5,41 @@ import com.kgit2.io.PlatformWriter
 import com.kgit2.io.Reader
 import com.kgit2.io.Writer
 import io.ktor.utils.io.errors.*
-import kotlinx.cinterop.*
-import platform.posix.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.allocArrayOf
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
+import platform.posix.E2BIG
+import platform.posix.EACCES
+import platform.posix.EAGAIN
+import platform.posix.EBADF
+import platform.posix.EBUSY
+import platform.posix.ECHILD
+import platform.posix.EFAULT
+import platform.posix.EINTR
+import platform.posix.EINVAL
+import platform.posix.EIO
+import platform.posix.EISDIR
+import platform.posix.ELOOP
+import platform.posix.EMFILE
+import platform.posix.ENAMETOOLONG
+import platform.posix.ENFILE
+import platform.posix.ENOENT
+import platform.posix.ENOEXEC
+import platform.posix.ENOMEM
+import platform.posix.ENOSYS
+import platform.posix.ENOTDIR
+import platform.posix.EPERM
+import platform.posix.ESRCH
+import platform.posix.ETXTBSY
+import platform.posix.FILE
+import platform.posix.errno
 
 object Posix {
     fun createWriter(file: CPointer<FILE>): Writer {

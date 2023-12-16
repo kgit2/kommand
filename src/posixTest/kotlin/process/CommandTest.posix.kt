@@ -23,6 +23,6 @@ actual fun envVar(key: String): String? {
     return getenv(key)?.toKStringFromUtf8()
 }
 
-actual fun tempDir(): String? {
-    return envVar("TMPDIR")
+actual fun homeDir(): String? {
+    return envVar("HOME")
 }

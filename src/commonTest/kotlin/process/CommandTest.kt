@@ -11,7 +11,7 @@ expect fun shellTest()
 
 expect fun envVar(key: String): String?
 
-expect fun tempDir(): String?
+expect fun homeDir(): String?
 
 class CommandTest {
 
@@ -136,11 +136,11 @@ class CommandTest {
     @Test
     fun testCwd() {
         val output = Command("pwd")
-            .cwd(tempDir())
+            .cwd(homeDir())
             .stdout(Stdio.Pipe)
             .spawn()
             .waitWithOutput()
             ?.trim();
-        assertEquals(tempDir()?.trimEnd('/'), output?.trimEnd('/'))
+        assertEquals(homeDir()?.trimEnd('/'), output?.trimEnd('/'))
     }
 }

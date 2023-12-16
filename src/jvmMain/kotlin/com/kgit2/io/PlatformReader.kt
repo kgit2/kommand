@@ -3,8 +3,7 @@ package com.kgit2.io
 import io.ktor.utils.io.bits.*
 import java.io.BufferedReader
 import java.io.InputStream
-import java.util.LinkedList
-import java.util.Queue
+import java.util.*
 import kotlin.math.min
 
 actual class PlatformReader(inputStream: InputStream) {

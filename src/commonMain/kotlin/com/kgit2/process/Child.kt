@@ -2,7 +2,6 @@ package com.kgit2.process
 
 import com.kgit2.io.Reader
 import com.kgit2.io.Writer
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 
 expect class Child(

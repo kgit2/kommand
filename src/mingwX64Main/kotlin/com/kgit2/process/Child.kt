@@ -4,7 +4,6 @@ import com.kgit2.io.PlatformReader
 import com.kgit2.io.PlatformWriter
 import com.kgit2.io.Reader
 import com.kgit2.io.Writer
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.Arena
 import kotlinx.cinterop.ByteVar
