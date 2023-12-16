@@ -62,3 +62,14 @@ macosArm64Test: macosArm64
 
 windowsX64Test: windowsX64
     ./gradlew mingwX64Test
+
+publishToSonatype:
+    ./gradlew publishToSonatype
+
+closeSonatype:
+    ./gradlew findSonatypeStagingRepository closeSonatypeStagingRepository
+
+releaseSonatype:
+    ./gradlew findSonatypeStagingRepository releaseSonatypeStagingRepository
+
+autoPublish: publishToSonatype closeSonatype releaseSonatype

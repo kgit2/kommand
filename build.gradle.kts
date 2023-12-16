@@ -3,6 +3,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
+    id("io.github.gradle-nexus.publish-plugin")
     `maven-publish`
     application
     signing
@@ -159,6 +160,17 @@ if (ossrhUsername != null && ossrhPassword != null) {
         dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
         archiveClassifier.set("javadoc")
         from(dokkaOutputDir)
+    }
+
+    nexusPublishing {
+        repositories {
+            sonatype {
+                nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+                snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+                username.set(ossrhUsername)
+                password.set(ossrhPassword)
+            }
+        }
     }
 
     publishing {
