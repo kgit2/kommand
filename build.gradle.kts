@@ -123,7 +123,7 @@ val buildEko = tasks.create("buildEko") {
 
 tasks.forEach {
     if (it.group == "verification" || it.path.contains("Test")) {
-        // it.dependsOn(buildEko)
+        it.dependsOn(buildEko)
     }
 }
 

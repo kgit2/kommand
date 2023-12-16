@@ -26,3 +26,7 @@ actual fun envVar(key: String): String? {
 actual fun homeDir(): String? {
     return envVar("HOME")
 }
+
+actual fun pwd(): Command {
+    return Command("pwd")
+}

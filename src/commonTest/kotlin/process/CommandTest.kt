@@ -13,6 +13,8 @@ expect fun envVar(key: String): String?
 
 expect fun homeDir(): String?
 
+expect fun pwd(): Command
+
 class CommandTest {
 
     @Test
@@ -135,7 +137,7 @@ class CommandTest {
 
     @Test
     fun testCwd() {
-        val output = Command("pwd")
+        val output = pwd()
             .cwd(homeDir())
             .stdout(Stdio.Pipe)
             .spawn()
