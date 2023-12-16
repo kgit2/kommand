@@ -113,8 +113,7 @@ val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
 val buildEko = tasks.create("buildEko") {
     group = "build"
     doLast {
-        println(file("eko"))
-        ProcessBuilder("sh", "-c", "cargo build --release")
+        ProcessBuilder("bash", "-c", "cargo build --release")
             .directory(file("eko"))
             .inheritIO()
             .start()
@@ -124,7 +123,7 @@ val buildEko = tasks.create("buildEko") {
 
 tasks.forEach {
     if (it.group == "verification" || it.path.contains("Test")) {
-        // it.dependsOn(buildEko)
+        it.dependsOn(buildEko)
     }
 }
 

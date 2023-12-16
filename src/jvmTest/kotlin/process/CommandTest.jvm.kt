@@ -45,3 +45,20 @@ actual fun shellTest() {
         }
     }
 }
+
+actual fun envVar(key: String): String? {
+    return System.getenv(key)
+}
+
+actual fun homeDir(): String? {
+    return envVar("HOME")
+}
+
+actual fun pwd(): Command {
+    return when (os) {
+        OS.WIN -> Command("chdir")
+        OS.MAC -> Command("pwd")
+        OS.LINUX -> Command("pwd")
+        null -> throw Exception("unknown os")
+    }
+}

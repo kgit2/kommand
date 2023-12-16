@@ -2,8 +2,6 @@ package com.kgit2.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
-import kotlin.math.min
 
 expect class PlatformReader {
     fun closeSource()

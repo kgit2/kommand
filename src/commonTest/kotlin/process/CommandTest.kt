@@ -9,6 +9,12 @@ expect val eko: String
 
 expect fun shellTest()
 
+expect fun envVar(key: String): String?
+
+expect fun homeDir(): String?
+
+expect fun pwd(): Command
+
 class CommandTest {
 
     @Test
@@ -127,5 +133,16 @@ class CommandTest {
         cmd.getChildStdout()?.lines()?.joinToString("\n")?.let {
             assertEquals(expectString, it)
         }
+    }
+
+    @Test
+    fun testCwd() {
+        val output = pwd()
+            .cwd(homeDir())
+            .stdout(Stdio.Pipe)
+            .spawn()
+            .waitWithOutput()
+            ?.trim();
+        assertEquals(homeDir()?.trimEnd('/'), output?.trimEnd('/'))
     }
 }

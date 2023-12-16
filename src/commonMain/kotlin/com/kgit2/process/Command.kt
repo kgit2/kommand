@@ -31,7 +31,7 @@ public class Command(
         return this
     }
 
-    public fun cwd(cwd: String): Command {
+    public fun cwd(cwd: String?): Command {
         this.cwd = cwd
         return this
     }

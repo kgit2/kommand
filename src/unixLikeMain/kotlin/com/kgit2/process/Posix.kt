@@ -5,8 +5,41 @@ import com.kgit2.io.PlatformWriter
 import com.kgit2.io.Reader
 import com.kgit2.io.Writer
 import io.ktor.utils.io.errors.*
-import kotlinx.cinterop.*
-import platform.posix.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.allocArrayOf
+import kotlinx.cinterop.cstr
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
+import platform.posix.E2BIG
+import platform.posix.EACCES
+import platform.posix.EAGAIN
+import platform.posix.EBADF
+import platform.posix.EBUSY
+import platform.posix.ECHILD
+import platform.posix.EFAULT
+import platform.posix.EINTR
+import platform.posix.EINVAL
+import platform.posix.EIO
+import platform.posix.EISDIR
+import platform.posix.ELOOP
+import platform.posix.EMFILE
+import platform.posix.ENAMETOOLONG
+import platform.posix.ENFILE
+import platform.posix.ENOENT
+import platform.posix.ENOEXEC
+import platform.posix.ENOMEM
+import platform.posix.ENOSYS
+import platform.posix.ENOTDIR
+import platform.posix.EPERM
+import platform.posix.ESRCH
+import platform.posix.ETXTBSY
+import platform.posix.FILE
+import platform.posix.errno
 
 object Posix {
     fun createWriter(file: CPointer<FILE>): Writer {
@@ -91,6 +124,24 @@ object Posix {
         return when (val file = platform.posix.fdopen(fileDescriptor, mode)) {
             null -> throw IOException("Invalid mode.")
             else -> file
+        }
+    }
+
+    @Throws(IOException::class)
+    fun chdir(path: String) {
+        if (platform.posix.chdir(path) != 0) {
+            when (platform.posix.errno) {
+                EACCES -> throw IOException("Search permission is denied for one of the components of path.")
+                EFAULT -> throw IOException("path points outside your accessible address space.")
+                EIO -> throw IOException("An I/O error occurred.")
+                ELOOP -> throw IOException("Too many symbolic links were encountered in resolving path.")
+                ENAMETOOLONG -> throw IOException("path is too long.")
+                ENOENT -> throw IOException("The directory specified in path does not exist.")
+                ENOMEM -> throw IOException("Insufficient kernel memory was available.")
+                ENOTDIR -> throw IOException("A component of the path prefix is not a directory.")
+                EBADF -> throw IOException("fd is not a valid file descriptor.")
+                else -> Unit
+            }
         }
     }
 

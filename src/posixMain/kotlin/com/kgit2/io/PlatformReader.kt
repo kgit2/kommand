@@ -3,8 +3,14 @@ package com.kgit2.io
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.cinterop.*
-import platform.posix.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toKString
+import platform.posix.FILE
+import platform.posix.fclose
+import platform.posix.fgets
 import kotlin.math.min
 
 actual class PlatformReader(file: CPointer<FILE>) {

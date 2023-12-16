@@ -4,7 +4,6 @@ import com.kgit2.io.PlatformReader
 import com.kgit2.io.PlatformWriter
 import com.kgit2.io.Reader
 import com.kgit2.io.Writer
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.Arena
 import kotlinx.cinterop.ByteVar
@@ -90,6 +89,7 @@ actual class Child actual constructor(
         val pipes = createPipe(securityAttribute.ptr)
         val startupInformation = createStartUpInformation(pipes)
         val cmdLine = createCMDLine(this)
+        val cwd = createCurrentDirectory(this)
         // create child process
         val success = CreateProcess!!.invoke(
             null,
@@ -99,7 +99,7 @@ actual class Child actual constructor(
             1,
             0u,
             null,
-            null,
+            cwd,
             startupInformation.ptr,
             processInformation.ptr
         )
@@ -230,6 +230,16 @@ actual class Child actual constructor(
             cmdLine[index] = c.code.toUShort()
         }
         return cmdLine
+    }
+
+    private fun createCurrentDirectory(memory: MemScope): CPointer<UShortVar>? {
+        return cwd?.let {
+            val currentDirectory = memory.allocArray<UShortVar>(it.length.convert())
+            it.forEachIndexed { index, c ->
+                currentDirectory[index] = c.code.toUShort()
+            }
+            currentDirectory
+        }
     }
 
     private fun redirectPipeHandle(pipes: CreatePipeResult) {

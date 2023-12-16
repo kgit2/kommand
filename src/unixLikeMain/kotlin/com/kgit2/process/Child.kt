@@ -2,10 +2,17 @@ package com.kgit2.process
 
 import com.kgit2.io.Reader
 import com.kgit2.io.Writer
-import com.kgit2.process.Stdio.*
+import com.kgit2.process.Stdio.Inherit
+import com.kgit2.process.Stdio.Null
+import com.kgit2.process.Stdio.Pipe
 import io.ktor.utils.io.errors.*
-import kotlinx.cinterop.*
-import platform.posix.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.memScoped
+import platform.posix.FILE
+import platform.posix.SIGTERM
+import platform.posix.STDERR_FILENO
+import platform.posix.STDIN_FILENO
+import platform.posix.STDOUT_FILENO
 
 const val READ_END = 0
 const val WRITE_END = 1
@@ -102,6 +109,9 @@ actual class Child actual constructor(
     private fun processChild(childPid: Int) {
         if (childPid == 0) {
             redirectFileDescriptor()
+            if (cwd != null) {
+                Posix.chdir(cwd)
+            }
             val commands = listOf(command, *args.toTypedArray(), null)
             Posix.execvp(commands)
         }
