@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "1.1.0"
+version = "1.2.0"
 
 val ktorIO = "2.3.4"
 
