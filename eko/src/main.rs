@@ -10,6 +10,7 @@ fn main() {
     }
     let cmd = &args[1];
     match cmd {
+        cmd if cmd == "echo" => echo(),
         cmd if cmd == "stdout" => stdout(),
         cmd if cmd == "stderr" => stderr(),
         cmd if cmd == "interval" => interval(
@@ -21,6 +22,13 @@ fn main() {
             eprintln!("Unknown command: {}", cmd);
         }
     };
+}
+
+fn echo() {
+    let mut line = String::new();
+    if stdin().read_line(&mut line).is_ok() {
+        print!("{}", line);
+    }
 }
 
 fn stdout() {
