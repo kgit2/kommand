@@ -1,0 +1,4 @@
+headers = kommand_core.h
+staticLibraries = libkommand_core.a
+compilerOpts = -Ikommand_core
+libraryPaths = kommand_core/target/x86_64-unknown-linux-gnu/release

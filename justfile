@@ -1,21 +1,27 @@
 #!/usr/bin/env just --justfile
 
 macosX64:
-    ./gradlew macosX64TestBinaries
+    ./gradlew linkNative -PtargetPlatform=MACOS_X64
 
 macosArm64:
-    ./gradlew macosArm64TestBinaries
+    ./gradlew linkNative -PtargetPlatform=MACOS_ARM64
+
+macos: macosX64 macosArm64
 
 linuxX64:
-    ./gradlew linuxX64TestBinaries
+    ./gradlew linkNative -PtargetPlatform=LINUX_X64
 
 linuxArm64:
-    ./gradlew linuxArm64TestBinaries
+    ./gradlew linkNative -PtargetPlatform=LINUX_ARM64
+
+linux: linuxX64 linuxArm64
 
 windowsX64:
-    ./gradlew mingwX64TestBinaries
+    ./gradlew linkNative -PtargetPlatform=MINGW_X64
 
-all: macosX64 macosArm64 linuxX64 linuxArm64 windowsX64
+windows: windowsX64
+
+all: macos linux windows
 
 clean:
     ./gradlew clean

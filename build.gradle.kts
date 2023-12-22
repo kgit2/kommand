@@ -1,3 +1,4 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
@@ -11,6 +12,14 @@ plugins {
 
 group = "com.kgit2"
 version = "1.2.0"
+
+val mainHost = Platform.MACOS_X64
+// for debug
+// val mainHost = Platform.MACOS_ARM64
+// val mainHost = Platform.LINUX_X64
+// val mainHost = Platform.LINUX_ARM64
+// val mainHost = Platform.MINGW_X64
+val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "MACOS_X64")
 
 val ktorIO = "2.3.4"
 
@@ -30,20 +39,37 @@ kotlin {
         }
     }
 
-    val nativeTargets = listOf(
-        macosArm64(),
-        macosX64(),
-        linuxX64(),
-        linuxArm64(),
-        mingwX64(),
-    )
+    val nativeTarget = when (targetPlatform) {
+        Platform.MACOS_X64 -> macosX64("native")
+        Platform.MACOS_ARM64 -> macosArm64("native")
+        Platform.LINUX_X64 -> linuxX64("native")
+        Platform.LINUX_ARM64 -> linuxArm64("native")
+        Platform.MINGW_X64 -> mingwX64("native")
+    }
+
+    nativeTarget.apply {
+        compilations.getByName("main") {
+            cinterops {
+                val kommandCore by creating {
+                    if (targetPlatform.toString().contains("macos")) {
+                        defFile(project.file("src/nativeInterop/cinterop/macos.def"))
+                    } else {
+                        defFile(project.file("src/nativeInterop/cinterop/${targetPlatform}.def"))
+                    }
+                    packageName("kommand_core")
+                }
+            }
+        }
+    }
 
     sourceSets {
         // add opt-in
         all {
             languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
             languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
-            // languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+            languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
+            languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
         }
 
         val commonMain by getting {
@@ -60,52 +86,57 @@ kotlin {
         val jvmMain by getting
         val jvmTest by getting
 
-        val posixMain by creating {
-            dependsOn(commonMain)
-        }
-        val posixTest by creating {
-            dependsOn(commonTest)
-            dependencies {
-                implementation("io.ktor:ktor-server-core:2.3.4")
-                implementation("io.ktor:ktor-server-cio:2.3.4")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-            }
+        val targetSourceSetName = when (targetPlatform) {
+            Platform.MACOS_X64 -> "macosX64"
+            Platform.MACOS_ARM64 -> "macosArm64"
+            Platform.LINUX_X64 -> "linuxX64"
+            Platform.LINUX_ARM64 -> "linuxArm64"
+            Platform.MINGW_X64 -> "mingwX64"
         }
 
-        val unixLikeMain by creating {
-            dependsOn(posixMain)
+        val targetMain = create("${targetSourceSetName}Main") {
+            dependsOn(commonMain)
         }
-        val unixLikeTest by creating {
-            dependsOn(posixTest)
+        val targetTest = create("${targetSourceSetName}Test") {
+            dependsOn(commonTest)
         }
-        val macosArm64Main by getting {
-            dependsOn(unixLikeMain)
+        // val macosX64Main by creating {
+        //     dependsOn(commonMain)
+        // }
+        // val macosX64Test by creating {
+        //     dependsOn(commonTest)
+        // }
+        // val macosArm64Main by creating {
+        //     dependsOn(commonMain)
+        // }
+        // val macosArm64Test by creating {
+        //     dependsOn(commonTest)
+        // }
+        // val linuxX64Main by creating {
+        //     dependsOn(commonMain)
+        // }
+        // val linuxX64Test by creating {
+        //     dependsOn(commonTest)
+        // }
+        // val linuxArm64Main by creating {
+        //     dependsOn(commonMain)
+        // }
+        // val linuxArm64Test by creating {
+        //     dependsOn(commonTest)
+        // }
+        // val mingwX64Main by creating {
+        //     dependsOn(commonMain)
+        // }
+        // val mingwX64Test by creating {
+        //     dependsOn(commonTest)
+        // }
+
+        val nativeMain by getting {
+            dependsOn(targetMain)
         }
-        val macosArm64Test by getting {
-            dependsOn(unixLikeTest)
+        val nativeTest by getting {
+            dependsOn(targetTest)
         }
-        val macosX64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val macosX64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val linuxX64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val linuxX64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val linuxArm64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val linuxArm64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val mingwX64Main by getting {
-            dependsOn(posixMain)
-        }
-        val mingwX64Test by getting
     }
 }
 
@@ -125,6 +156,13 @@ val buildEko = tasks.create("buildEko") {
 tasks.forEach {
     if (it.group == "verification" || it.path.contains("Test")) {
         it.dependsOn(buildEko)
+    }
+}
+
+tasks {
+    val wrapper by getting(Wrapper::class) {
+        distributionType = Wrapper.DistributionType.ALL
+        gradleVersion = "8.5"
     }
 }
 
@@ -217,3 +255,41 @@ if (ossrhUsername != null && ossrhPassword != null) {
         sign(publishing.publications)
     }
 }
+
+enum class Platform(
+    val archName: String
+) {
+    MACOS_X64("x86_64-apple-darwin"),
+    MACOS_ARM64("aarch64-apple-darwin"),
+    LINUX_X64("x86_64-unknown-linux-gnu"),
+    LINUX_ARM64("aarch64-unknown-linux-gnu"),
+    MINGW_X64("x86_64-pc-windows-gnu"),
+    ;
+
+    override fun toString(): String {
+        return when (this) {
+            MACOS_X64 -> "macosx64"
+            MACOS_ARM64 -> "macosarm64"
+            LINUX_X64 -> "linuxx64"
+            LINUX_ARM64 -> "linuxarm64"
+            MINGW_X64 -> "mingw64"
+        }
+    }
+}
+
+val currentPlatform: Platform = when {
+    DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MACOS_X64
+    DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isArm64 -> Platform.MACOS_ARM64
+    DefaultNativePlatform.getCurrentOperatingSystem().isLinux && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.LINUX_X64
+    DefaultNativePlatform.getCurrentOperatingSystem().isLinux && DefaultNativePlatform.getCurrentArchitecture().isArm64 -> Platform.LINUX_ARM64
+    DefaultNativePlatform.getCurrentOperatingSystem().isWindows && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MINGW_X64
+    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+}
+
+val platforms: List<Platform> = listOf(
+    Platform.MACOS_X64,
+    Platform.MACOS_ARM64,
+    Platform.LINUX_X64,
+    Platform.LINUX_ARM64,
+    Platform.MINGW_X64,
+)
