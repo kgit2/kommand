@@ -39,28 +39,39 @@ kotlin {
         }
     }
 
-    val nativeTarget = when (targetPlatform) {
-        Platform.MACOS_X64 -> macosX64("native")
-        Platform.MACOS_ARM64 -> macosArm64("native")
-        Platform.LINUX_X64 -> linuxX64("native")
-        Platform.LINUX_ARM64 -> linuxArm64("native")
-        Platform.MINGW_X64 -> mingwX64("native")
-    }
+    // val nativeTarget = when (targetPlatform) {
+    //     Platform.MACOS_X64 -> macosX64("native")
+    //     Platform.MACOS_ARM64 -> macosArm64("native")
+    //     Platform.LINUX_X64 -> linuxX64("native")
+    //     Platform.LINUX_ARM64 -> linuxArm64("native")
+    //     Platform.MINGW_X64 -> mingwX64("native")
+    // }
+    val nativeTargets = listOf(
+        macosX64() to Platform.MACOS_X64,
+        macosArm64() to Platform.MACOS_ARM64,
+        linuxX64() to Platform.LINUX_X64,
+        linuxArm64() to Platform.LINUX_ARM64,
+        mingwX64() to Platform.MINGW_X64,
+    )
 
-    nativeTarget.apply {
-        compilations.getByName("main") {
-            cinterops {
-                val kommandCore by creating {
-                    if (targetPlatform.toString().contains("macos")) {
-                        defFile(project.file("src/nativeInterop/cinterop/macos.def"))
-                    } else {
-                        defFile(project.file("src/nativeInterop/cinterop/${targetPlatform}.def"))
+    nativeTargets.forEach { (nativeTarget, targetPlatform) ->
+        nativeTarget.apply {
+            compilations.getByName("main") {
+                cinterops {
+                    val kommandCore by creating {
+                        if (targetPlatform.toString().contains("macos")) {
+                            defFile(project.file("src/nativeInterop/cinterop/macos.def"))
+                        } else {
+                            defFile(project.file("src/nativeInterop/cinterop/${targetPlatform}.def"))
+                        }
+                        packageName("kommand_core")
                     }
-                    packageName("kommand_core")
                 }
             }
         }
     }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         // add opt-in
@@ -83,30 +94,30 @@ kotlin {
             }
         }
 
-        val jvmMain by getting
-        val jvmTest by getting
-
-        val targetSourceSetName = when (targetPlatform) {
-            Platform.MACOS_X64 -> "macosX64"
-            Platform.MACOS_ARM64 -> "macosArm64"
-            Platform.LINUX_X64 -> "linuxX64"
-            Platform.LINUX_ARM64 -> "linuxArm64"
-            Platform.MINGW_X64 -> "mingwX64"
-        }
-
-        val targetMain = create("${targetSourceSetName}Main") {
-            dependsOn(commonMain)
-        }
-        val targetTest = create("${targetSourceSetName}Test") {
-            dependsOn(commonTest)
-        }
-
-        val nativeMain by getting {
-            dependsOn(targetMain)
-        }
-        val nativeTest by getting {
-            dependsOn(targetTest)
-        }
+        // val jvmMain by getting
+        // val jvmTest by getting
+        //
+        // val targetSourceSetName = when (targetPlatform) {
+        //     Platform.MACOS_X64 -> "macosX64"
+        //     Platform.MACOS_ARM64 -> "macosArm64"
+        //     Platform.LINUX_X64 -> "linuxX64"
+        //     Platform.LINUX_ARM64 -> "linuxArm64"
+        //     Platform.MINGW_X64 -> "mingwX64"
+        // }
+        //
+        // val targetMain = create("${targetSourceSetName}Main") {
+        //     dependsOn(commonMain)
+        // }
+        // val targetTest = create("${targetSourceSetName}Test") {
+        //     dependsOn(commonTest)
+        // }
+        //
+        // val nativeMain by getting {
+        //     dependsOn(targetMain)
+        // }
+        // val nativeTest by getting {
+        //     dependsOn(targetTest)
+        // }
     }
 }
 

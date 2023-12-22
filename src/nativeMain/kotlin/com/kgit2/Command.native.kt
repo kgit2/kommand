@@ -1,110 +1,110 @@
 package com.kgit2
 
-import kommand_core.*
+import com.kgit2.wrapper.*
 import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.pointed
 import kotlin.native.ref.createCleaner
 
 actual class Command(
     actual val command: String,
     private val inner: COpaquePointer?,
 ) {
-    actual constructor(command: String) : this(command, new_command(command))
+    actual constructor(command: String) : this(command, newCommand(command))
 
     private val cleaner = createCleaner(inner) {
-        drop_command(inner)
+        dropCommand(inner)
     }
 
     override fun toString(): String {
-        return display_command(inner)?.asString() ?: "null"
+        return displayCommand(inner) ?: "null"
     }
 
     actual fun debugString(): String {
-        return debug_command(inner)?.asString() ?: "null"
+        return debugCommand(inner) ?: "null"
     }
 
     actual fun arg(arg: String): Command {
-        arg_command(inner, arg)
+        argCommand(inner, arg)
         return this
     }
 
     actual fun args(args: List<String>): Command {
         for (arg in args) {
-            arg_command(inner, arg)
+            argCommand(inner, arg)
         }
         return this
     }
 
     actual fun env(key: String, value: String): Command {
-        env_command(inner, key, value)
+        envCommand(inner, key, value)
         return this
     }
 
     actual fun envs(envs: Map<String, String>): Command {
         for ((key, value) in envs) {
-            env_command(inner, key, value)
+            envCommand(inner, key, value)
         }
         return this
     }
 
     actual fun removeEnv(key: String): Command {
-        remove_env_command(inner, key)
+        removeEnvCommand(inner, key)
         return this
     }
 
     actual fun envClear(): Command {
-        env_clear_command(inner)
+        envClearCommand(inner)
         return this
     }
 
     actual fun cwd(dir: String): Command {
-        current_dir_command(inner, dir)
+        currentDirCommand(inner, dir)
         return this
     }
 
     actual fun stdin(stdio: Stdio): Command {
-        stdin_command(inner, stdio.to())
+        stdinCommand(inner, stdio)
         return this
     }
 
     actual fun stdout(stdio: Stdio): Command {
-        stdin_command(inner, stdio.to())
+        stdoutCommand(inner, stdio)
         return this
     }
 
     actual fun stderr(stdio: Stdio): Command {
-        stdin_command(inner, stdio.to())
+        stderrCommand(inner, stdio)
         return this
     }
 
     @Throws(KommandException::class)
     actual fun spawn(): Child {
-        val result = spawn_command(inner)
-        return run { Child.from(result) }
+        return run { spawnCommand(inner) }
     }
 
     @Throws(KommandException::class)
     actual fun output(): Output {
-        val result = output_command(inner)
-        return run { Output.from(result) }
+        return run { outputCommand(inner) }
     }
 
-    actual fun status(): Int? = memScoped {
-        val result = status_command(inner)
-        if (result.ptr.pointed.err != null) {
-            val errPtr = result.ptr.pointed.err!!
-            throw KommandException(errPtr.asString(), result.ptr.pointed.error_type.to())
-        } else {
-            result.ptr.pointed.ok
-        }
+    actual fun status(): Int?  {
+        return statusCommand(inner)
     }
+
+    // actual fun status(): Int? = memScoped {
+    //     val result = statusCommand(inner)
+    //     if (result.ptr.pointed.err != null) {
+    //         val errPtr = result.ptr.pointed.err!!
+    //         throw KommandException(errPtr.asString(), result.ptr.pointed.error_type.to())
+    //     } else {
+    //         result.ptr.pointed.ok
+    //     }
+    // }
 }
 
-fun Stdio.to(): kommand_core.Stdio {
-    return when (this) {
-        Stdio.Inherit -> kommand_core.Stdio.Inherit
-        Stdio.Pipe -> kommand_core.Stdio.Pipe
-        Stdio.Null -> kommand_core.Stdio.Null
-    }
-}
+// : kommand_core.Stdio {
+//     return when (this) {
+//         Stdio.Inherit -> kommand_core.Stdio.Inherit
+//         Stdio.Pipe -> kommand_core.Stdio.Pipe
+//         Stdio.Null -> kommand_core.Stdio.Null
+//     }
+// }
