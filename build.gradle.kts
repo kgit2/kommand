@@ -14,12 +14,12 @@ group = "com.kgit2"
 version = "1.2.0"
 
 val mainHost = Platform.MACOS_X64
-// for debug
-// val mainHost = Platform.MACOS_ARM64
-// val mainHost = Platform.LINUX_X64
-// val mainHost = Platform.LINUX_ARM64
-// val mainHost = Platform.MINGW_X64
 val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "MACOS_X64")
+// for debug
+// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "MACOS_ARM64")
+// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "LINUX_X64")
+// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "LINUX_ARM64")
+// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "MINGW_X64")
 
 val ktorIO = "2.3.4"
 
@@ -31,7 +31,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11"
+            kotlinOptions.jvmTarget = "17"
         }
         withJava()
         testRuns["test"].executionTask.configure {
@@ -100,36 +100,6 @@ kotlin {
         val targetTest = create("${targetSourceSetName}Test") {
             dependsOn(commonTest)
         }
-        // val macosX64Main by creating {
-        //     dependsOn(commonMain)
-        // }
-        // val macosX64Test by creating {
-        //     dependsOn(commonTest)
-        // }
-        // val macosArm64Main by creating {
-        //     dependsOn(commonMain)
-        // }
-        // val macosArm64Test by creating {
-        //     dependsOn(commonTest)
-        // }
-        // val linuxX64Main by creating {
-        //     dependsOn(commonMain)
-        // }
-        // val linuxX64Test by creating {
-        //     dependsOn(commonTest)
-        // }
-        // val linuxArm64Main by creating {
-        //     dependsOn(commonMain)
-        // }
-        // val linuxArm64Test by creating {
-        //     dependsOn(commonTest)
-        // }
-        // val mingwX64Main by creating {
-        //     dependsOn(commonMain)
-        // }
-        // val mingwX64Test by creating {
-        //     dependsOn(commonTest)
-        // }
 
         val nativeMain by getting {
             dependsOn(targetMain)
