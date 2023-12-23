@@ -1,3 +1,4 @@
+use colored::Colorize;
 use std::env;
 use std::io::stdin;
 use std::str::FromStr;
@@ -5,7 +6,7 @@ use std::str::FromStr;
 fn main() {
     let args = env::args().collect::<Vec<String>>();
     if args.len() == 1 {
-        println!("Hello, Kommand!");
+        print!("Hello, Kommand!");
         return;
     }
     let cmd = &args[1];
@@ -13,6 +14,7 @@ fn main() {
         cmd if cmd == "echo" => echo(),
         cmd if cmd == "stdout" => stdout(),
         cmd if cmd == "stderr" => stderr(),
+        cmd if cmd == "color" => color(),
         cmd if cmd == "interval" => interval(
             args.get(2)
                 .map(|s| u32::from_str(s).unwrap_or_else(|_| panic!("{} cannot convert to u32", s)))
@@ -36,7 +38,7 @@ fn stdout() {
         match line {
             Ok(line) => println!("{}", line),
             Err(_) => {
-                eprintln!("Error reading stdin");
+                eprint!("Error reading stdin");
                 break;
             }
         }
@@ -46,7 +48,7 @@ fn stdout() {
 fn stderr() {
     for line in stdin().lines() {
         match line {
-            Ok(line) => eprintln!("{}", line),
+            Ok(line) => eprint!("{}", line),
             Err(_) => break,
         }
     }
@@ -58,4 +60,12 @@ fn interval(count: u32) {
         println!("{}", i);
         std::thread::sleep(duration);
     }
+}
+
+fn color() {
+    colored::control::set_override(true);
+    println!("{}", "Hello, Kommand!".red());
+    println!("{}", "Hello, Kommand!".green());
+    println!("{}", "Hello, Kommand!".blue());
+    colored::control::unset_override();
 }

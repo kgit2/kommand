@@ -19,8 +19,8 @@ expect fun waitChild(child: COpaquePointer?): Int
 @Throws(KommandException::class)
 expect fun waitWithOutputChild(child: COpaquePointer?): Output
 
-expect fun stdinChild(child: COpaquePointer?): BufferedWriter?
+expect fun bufferedStdinChild(child: COpaquePointer?): BufferedWriter?
 
-expect fun stdoutChild(child: COpaquePointer?): BufferedReader?
+expect fun bufferedStdoutChild(child: COpaquePointer?): BufferedReader?
 
-expect fun stderrChild(child: COpaquePointer?): BufferedReader?
+expect fun bufferedStderrChild(child: COpaquePointer?): BufferedReader?

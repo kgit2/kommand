@@ -98,10 +98,16 @@ tasks.forEach {
     }
 }
 
+tasks.withType(Test::class) {
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
 tasks {
     val wrapper by getting(Wrapper::class) {
         distributionType = Wrapper.DistributionType.ALL
-        gradleVersion = "8.5"
+        gradleVersion = "8.2"
     }
 }
 

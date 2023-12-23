@@ -7,23 +7,28 @@ import com.kgit2.io.Output
 import com.kgit2.wrapper.dropChild
 import com.kgit2.wrapper.idChild
 import com.kgit2.wrapper.killChild
-import com.kgit2.wrapper.stderrChild
-import com.kgit2.wrapper.stdinChild
-import com.kgit2.wrapper.stdoutChild
+import com.kgit2.wrapper.bufferedStderrChild
+import com.kgit2.wrapper.bufferedStdinChild
+import com.kgit2.wrapper.bufferedStdoutChild
 import com.kgit2.wrapper.waitChild
 import com.kgit2.wrapper.waitWithOutputChild
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.COpaquePointer
 import kotlin.native.ref.createCleaner
 
 actual class Child(
-    private val inner: COpaquePointer?
+    private var inner: COpaquePointer?
 ) {
-    actual var stdin: BufferedWriter? = null
-    actual var stdout: BufferedReader? = null
-    actual var stderr: BufferedReader? = null
+    var stdin: BufferedWriter? = null
+    var stdout: BufferedReader? = null
+    var stderr: BufferedReader? = null
 
-    val cleaner = createCleaner(inner) { child ->
-        dropChild(child)
+    private val isClosed = atomic(false)
+
+    private val cleaner = createCleaner(isClosed to inner) { (freed, child) ->
+        if (freed.compareAndSet(expect = false, update = true)) {
+            dropChild(child)
+        }
     }
 
     companion object;
@@ -32,39 +37,56 @@ actual class Child(
         return idChild(inner)
     }
 
-    @Throws(KommandException::class)
-    actual fun kill() {
-        return run { killChild(inner) }
+    actual fun bufferedStdin(): BufferedWriter? {
+        if (stdin == null) {
+            updateStdin()
+        }
+        return stdin
+    }
+
+    actual fun bufferedStdout(): BufferedReader? {
+        if (stdout == null) {
+            updateStdout()
+        }
+        return stdout
+    }
+
+    actual fun bufferedStderr(): BufferedReader? {
+        if (stderr == null) {
+            updateStderr()
+        }
+        return stderr
     }
 
     @Throws(KommandException::class)
-    actual fun wait(): Int {
-        return run { waitChild(inner) }
+    actual fun kill() = run {
+        killChild(inner)
     }
 
     @Throws(KommandException::class)
-    actual fun waitWithOutput(): Output {
-        return run { waitWithOutputChild(inner) }
+    actual fun wait(): Int = run {
+        stdin?.close()
+        waitChild(inner)
     }
 
-    internal fun updateIO() {
-        updateStdin()
-        updateStdout()
-        updateStderr()
+    @Throws(KommandException::class)
+    actual fun waitWithOutput(): Output = run {
+        stdin?.close()
+        val inner = this.inner
+        this.inner = null
+        isClosed.getAndSet(true)
+        waitWithOutputChild(inner)
     }
 
-    @Suppress("MemberVisibilityCanBePrivate")
-    internal fun updateStdin() {
-        stdin = stdinChild(inner)
+    private fun updateStdin() {
+        stdin = bufferedStdinChild(inner)
     }
 
-    @Suppress("MemberVisibilityCanBePrivate")
-    internal fun updateStdout() {
-        stdout = stdoutChild(inner)
+    private fun updateStdout() {
+        stdout = bufferedStdoutChild(inner)
     }
 
-    @Suppress("MemberVisibilityCanBePrivate")
-    internal fun updateStderr() {
-        stderr = stderrChild(inner)
+    private fun updateStderr() {
+        stderr = bufferedStderrChild(inner)
     }
 }

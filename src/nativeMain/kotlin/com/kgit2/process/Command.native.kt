@@ -2,7 +2,21 @@ package com.kgit2.process
 
 import com.kgit2.exception.KommandException
 import com.kgit2.io.Output
-import com.kgit2.wrapper.*
+import com.kgit2.wrapper.argCommand
+import com.kgit2.wrapper.currentDirCommand
+import com.kgit2.wrapper.debugCommand
+import com.kgit2.wrapper.displayCommand
+import com.kgit2.wrapper.dropCommand
+import com.kgit2.wrapper.envClearCommand
+import com.kgit2.wrapper.envCommand
+import com.kgit2.wrapper.newCommand
+import com.kgit2.wrapper.outputCommand
+import com.kgit2.wrapper.removeEnvCommand
+import com.kgit2.wrapper.spawnCommand
+import com.kgit2.wrapper.statusCommand
+import com.kgit2.wrapper.stderrCommand
+import com.kgit2.wrapper.stdinCommand
+import com.kgit2.wrapper.stdoutCommand
 import kotlinx.cinterop.COpaquePointer
 import kotlin.native.ref.createCleaner
 

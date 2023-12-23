@@ -6,7 +6,6 @@ enum class Platform {
     LINUX_X64,
     LINUX_ARM64,
     MINGW_X64,
-    JVM
 }
 
 expect val platform: Platform

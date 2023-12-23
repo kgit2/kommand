@@ -2,9 +2,9 @@ use std::ffi::{c_char, c_void};
 use std::process::Command;
 
 use crate::ffi_util::{as_string, into_cstring, into_void};
-use crate::output::Output;
+use crate::process::Output;
+use crate::process::Stdio;
 use crate::result::{IntResult, VoidResult};
-use crate::stdio::Stdio;
 
 pub fn as_command(command_ptr: &*const c_void) -> &Command {
     unsafe { &*(*command_ptr as *const Command) }
@@ -24,7 +24,7 @@ pub fn into_command(command_ptr: *mut c_void) -> Command {
 ///
 /// ```rust
 /// use kommand_core::ffi_util::as_cstring;
-/// use kommand_core::kommand::{drop_command, new_command};
+/// use kommand_core::process::{drop_command, new_command};
 /// unsafe {
 ///     let command = new_command(as_cstring("pwd").as_ptr());
 ///     drop_command(command);
@@ -39,7 +39,7 @@ pub unsafe extern "C" fn new_command(name: *const c_char) -> *mut c_void {
 
 /// ```rust
 /// use kommand_core::ffi_util::{as_cstring, drop_string};
-/// use kommand_core::kommand::{display_command, drop_command, new_command};
+/// use kommand_core::process::{display_command, drop_command, new_command};
 /// unsafe {
 ///     let command = new_command(as_cstring("pwd").as_ptr());
 ///     let display = display_command(command);
@@ -55,7 +55,7 @@ pub extern "C" fn display_command(command: *const c_void) -> *mut c_char {
 
 /// ```rust
 /// use kommand_core::ffi_util::{as_cstring, drop_string};
-/// use kommand_core::kommand::{debug_command, drop_command, new_command};
+/// use kommand_core::process::{debug_command, drop_command, new_command};
 /// unsafe {
 ///     let command = new_command(as_cstring("pwd").as_ptr());
 ///     let debug = debug_command(command);
@@ -71,7 +71,7 @@ pub extern "C" fn debug_command(command: *const c_void) -> *mut c_char {
 
 /// ```rust
 /// use kommand_core::ffi_util::as_cstring;
-/// use kommand_core::kommand::{drop_command, new_command};
+/// use kommand_core::process::{drop_command, new_command};
 /// unsafe {
 ///     let command = new_command(as_cstring("pwd").as_ptr());
 ///     drop_command(command);
@@ -90,7 +90,7 @@ pub extern "C" fn drop_command(command: *mut c_void) {
 ///
 /// ```rust
 /// use kommand_core::ffi_util::as_cstring;
-/// use kommand_core::kommand::{arg_command, drop_command, new_command};
+/// use kommand_core::process::{arg_command, drop_command, new_command};
 /// unsafe {
 ///     let command = new_command(as_cstring("ls").as_ptr());
 ///     arg_command(command, as_cstring("-l").as_ptr());
@@ -109,7 +109,7 @@ pub unsafe extern "C" fn arg_command(mut command: *const c_void, arg: *const c_c
 ///
 /// ```rust
 /// use kommand_core::ffi_util::as_cstring;
-/// use kommand_core::kommand::{arg_command, drop_command, env_command, new_command};
+/// use kommand_core::process::{arg_command, drop_command, env_command, new_command};
 /// unsafe {
 ///     let command = new_command(as_cstring("echo").as_ptr());
 ///     arg_command(command, as_cstring("$KOMMAND").as_ptr());

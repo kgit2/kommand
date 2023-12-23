@@ -1,6 +1,6 @@
 use crate::ffi_util::into_void;
-use crate::output::Output;
-use crate::result::{IntResult, UnitResult, VoidResult};
+use crate::process::Output;
+use crate::result::{ErrorType, IntResult, UnitResult, VoidResult};
 use std::ffi::{c_uint, c_void};
 use std::io::{BufReader, BufWriter};
 use std::process::Child;
@@ -18,7 +18,7 @@ pub fn into_child(command_ptr: *mut c_void) -> Child {
 }
 
 #[no_mangle]
-pub extern "C" fn stdin_child(mut child: *const c_void) -> *mut c_void {
+pub extern "C" fn buffered_stdin_child(mut child: *const c_void) -> *mut c_void {
     let child = as_child_mut(&mut child);
     child
         .stdin
@@ -29,7 +29,7 @@ pub extern "C" fn stdin_child(mut child: *const c_void) -> *mut c_void {
 }
 
 #[no_mangle]
-pub extern "C" fn stdout_child(mut child: *const c_void) -> *mut c_void {
+pub extern "C" fn buffered_stdout_child(mut child: *const c_void) -> *mut c_void {
     let child = as_child_mut(&mut child);
     child
         .stdout
@@ -40,7 +40,7 @@ pub extern "C" fn stdout_child(mut child: *const c_void) -> *mut c_void {
 }
 
 #[no_mangle]
-pub extern "C" fn stderr_child(mut child: *const c_void) -> *mut c_void {
+pub extern "C" fn buffered_stderr_child(mut child: *const c_void) -> *mut c_void {
     let child = as_child_mut(&mut child);
     child
         .stderr
@@ -68,8 +68,14 @@ pub extern "C" fn wait_child(mut child: *const c_void) -> IntResult {
     child.wait().into()
 }
 
+/// The returned [Output] will empty
+/// if convert the [Child.stdout] and [Child.stderr] to buffered
+/// with [buffered_stdout_child] and [buffered_stderr_child]
 #[no_mangle]
 pub extern "C" fn wait_with_output_child(child: *mut c_void) -> VoidResult {
+    if child.is_null() {
+        return VoidResult::error("Child has been consumed", ErrorType::None);
+    }
     let child = into_child(child);
     child.wait_with_output().map(Output::from).into()
 }

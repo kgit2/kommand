@@ -7,3 +7,6 @@ authors.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+colored = "2.0.4"
+console = "0.15.7"
+ansi_term = "0.12.1"

@@ -31,6 +31,16 @@ pub enum ErrorType {
     Unknown,
 }
 
+impl VoidResult {
+    pub fn error(err: impl AsRef<str>, error_type: ErrorType) -> Self {
+        VoidResult {
+            ok: std::ptr::null_mut(),
+            err: into_cstring(err.as_ref()),
+            error_type,
+        }
+    }
+}
+
 impl From<io::Result<std::process::Child>> for VoidResult {
     //noinspection DuplicatedCode
     fn from(result: io::Result<std::process::Child>) -> Self {
@@ -49,9 +59,9 @@ impl From<io::Result<std::process::Child>> for VoidResult {
     }
 }
 
-impl From<io::Result<crate::output::Output>> for VoidResult {
+impl From<io::Result<crate::process::Output>> for VoidResult {
     //noinspection DuplicatedCode
-    fn from(value: io::Result<crate::output::Output>) -> Self {
+    fn from(value: io::Result<crate::process::Output>) -> Self {
         match value {
             Ok(output) => VoidResult {
                 ok: into_void(output),

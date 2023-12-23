@@ -40,3 +40,7 @@ all: macos linux win
 watch:
     cargo build --release --package kommand-watch
     target/release/kommand-watch
+
+build-kommand-echo:
+    cargo build --package kommand-echo
+    cargo build --release --package kommand-echo

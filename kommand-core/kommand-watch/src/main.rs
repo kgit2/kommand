@@ -1,14 +1,16 @@
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
+use std::fmt::Display;
 use std::path::Path;
+use std::path::PathBuf;
 use std::time::Duration;
 
 use color_eyre::eyre::Context;
+use color_eyre::owo_colors::OwoColorize;
 use color_eyre::{install, Result};
 use lazy_static::lazy_static;
 use notify_debouncer_mini::notify::RecursiveMode;
 use notify_debouncer_mini::{new_debouncer, DebounceEventResult};
-use std::path::PathBuf;
 use walkdir::WalkDir;
 
 lazy_static! {
@@ -32,10 +34,15 @@ lazy_static! {
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     install()?;
+    #[cfg(windows)]
+    ansi_term::enable_ansi_support().unwrap();
 
     sync_dir(MAIN_DIR.as_path());
     let mut debouncer = new_debouncer(Duration::from_millis(500), process_file_change)?;
-    println!("Watching {}", MAIN_DIR.display());
+    format!("Watching {}", MAIN_DIR.display())
+        .blue()
+        .bold()
+        .print();
     debouncer
         .watcher()
         .watch(&MAIN_DIR, RecursiveMode::Recursive)?;
@@ -64,13 +71,13 @@ fn process_file_change(result: DebounceEventResult) {
                 });
         }
         Err(error) => {
-            eprintln!("{:?}", error);
+            format!("{}", error).red().eprint();
         }
     }
 }
 
 fn sync_file(path: impl AsRef<Path>) {
-    println!("File changed {:?}", path.as_ref());
+    format!("File changed {:?}", path.as_ref()).green().print();
     let content = fs_extra::file::read_to_string(path.as_ref()).unwrap();
     let striped = path
         .as_ref()
@@ -79,7 +86,7 @@ fn sync_file(path: impl AsRef<Path>) {
         .unwrap();
     CLUSTER_DIRS.iter().for_each(|(name, cluster_dir)| {
         let new_path = cluster_dir.join(striped.to_string_lossy().replace("macosX64", name));
-        println!("Will write to {:?}", new_path);
+        format!("    Will write to {:?}", new_path).yellow().print();
         if !new_path.exists() {
             fs_extra::dir::create_all(new_path.parent().unwrap(), false).unwrap();
         }
@@ -88,7 +95,7 @@ fn sync_file(path: impl AsRef<Path>) {
 }
 
 fn sync_dir(path: impl AsRef<Path>) {
-    println!("Dir changed {:?}", path.as_ref());
+    format!("Dir changed {:?}", path.as_ref()).green().print();
     let main_files = collect_dir(MAIN_DIR.as_path());
     let main_set = main_files
         .iter()
@@ -113,15 +120,36 @@ fn sync_dir(path: impl AsRef<Path>) {
             })
             .collect::<HashSet<_>>();
         let diff = cluster_set.difference(&main_set);
-        diff.for_each(|path| sync_remove(cluster_dir.join(path)));
+        diff.for_each(|path| sync_remove(MAIN_DIR.join(path)));
         #[rustfmt::skip]
         main_set.iter().for_each(|path| sync_file(MAIN_DIR.join(path)));
     });
 }
 
 fn sync_remove(path: impl AsRef<Path>) {
-    println!("Item removed {:?}", path.as_ref());
-    fs_extra::remove_items(&[path.as_ref()]).unwrap();
+    format!("Item removed {:?}", path.as_ref()).green().print();
+    let striped = path
+        .as_ref()
+        .strip_prefix(MAIN_DIR.as_path())
+        .with_context(|| "Strip Error")
+        .unwrap();
+    CLUSTER_DIRS.iter().for_each(|(name, cluster_dir)| {
+        let new_path = cluster_dir.join(striped.to_string_lossy().replace("macosX64", name));
+        if new_path.exists() {
+            format!("    Will remove {:?}", new_path).red().print();
+            if new_path.is_file() {
+                fs_extra::file::remove(&new_path).unwrap();
+            } else if new_path.is_dir() {
+                fs_extra::dir::remove(&new_path).unwrap();
+            } else if new_path.is_symlink() {
+                fs_extra::file::remove(&new_path).unwrap();
+            }
+        } else {
+            format!("    Will not remove (not exist) {:?}", new_path)
+                .magenta()
+                .eprint();
+        }
+    });
 }
 
 fn collect_dir(path: impl AsRef<Path>) -> HashSet<PathBuf> {
@@ -131,4 +159,20 @@ fn collect_dir(path: impl AsRef<Path>) -> HashSet<PathBuf> {
         .flatten()
         .map(|entry| entry.into_path())
         .collect::<HashSet<_>>()
+}
+
+pub trait Print {
+    fn print(&self);
+
+    fn eprint(&self);
+}
+
+impl<T: Display> Print for T {
+    fn print(&self) {
+        println!("{}", self);
+    }
+
+    fn eprint(&self) {
+        eprintln!("{}", self);
+    }
 }

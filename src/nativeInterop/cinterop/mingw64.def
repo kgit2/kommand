@@ -1,5 +1,5 @@
 headers = kommand_core.h
 staticLibraries = libkommand_core.a
-compilerOpts = -Ikommand_core
+compilerOpts = -Ikommand-core
 linkerOpts = -static -lws2_32 -lbcrypt -luserenv -lntdll -v
-libraryPaths = kommand_core/target/x86_64-pc-windows-gnu/release
+libraryPaths = kommand-core/target/x86_64-pc-windows-gnu/release

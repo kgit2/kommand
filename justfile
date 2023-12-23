@@ -79,3 +79,7 @@ releaseSonatype:
     ./gradlew findSonatypeStagingRepository releaseSonatypeStagingRepository
 
 autoPublish: publishToSonatype closeSonatype releaseSonatype
+
+leaks:
+    ./gradlew :cleanMacosX64Test :macosX64Test
+    leaks -atExit -- build/bin/macosX64/debugTest/test.kexe

@@ -25,14 +25,14 @@ inline fun CPointer<ByteVar>.asString(): String {
 @Throws(KommandException::class)
 fun Child.Companion.from(result: CValue<kommand_core.VoidResult>): Child = memScoped {
     if (result.ptr.pointed.ok != null) {
-        val child = Child(result.ptr.pointed.ok)
-        child.updateIO()
-        child
-    } else {
+        Child(result.ptr.pointed.ok)
+    } else if (result.ptr.pointed.err != null) {
         throw KommandException(
             result.ptr.pointed.err?.asString(),
             result.ptr.pointed.error_type.to()
         )
+    } else {
+        throw KommandException("[spawn_command] return [result]'s [ok] & [err] are both null", ErrorType.Unknown)
     }
 }
 

@@ -2,10 +2,8 @@
 //!
 //! Export the ffi interface through [cbindgen] and use it in kotlin/native
 
-pub mod child;
+pub mod env;
 pub mod ffi_util;
 pub mod io;
-pub mod kommand;
-pub mod output;
+pub mod process;
 pub mod result;
-pub mod stdio;

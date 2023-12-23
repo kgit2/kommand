@@ -8,11 +8,23 @@ import com.kgit2.io.Output
 actual class Child(
     private val process: Process,
 ) {
-    actual var stdin: BufferedWriter? = null
-    actual var stdout: BufferedReader? = null
-    actual var stderr: BufferedReader? = null
+    var stdin: BufferedWriter? = null
+    var stdout: BufferedReader? = null
+    var stderr: BufferedReader? = null
 
     actual fun id(): UInt {
+        TODO("Not yet implemented")
+    }
+
+    actual fun bufferedStdin(): BufferedWriter? {
+        TODO("Not yet implemented")
+    }
+
+    actual fun bufferedStdout(): BufferedReader? {
+        TODO("Not yet implemented")
+    }
+
+    actual fun bufferedStderr(): BufferedReader? {
         TODO("Not yet implemented")
     }
 

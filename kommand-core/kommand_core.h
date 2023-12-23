@@ -11,6 +11,18 @@ typedef enum Stdio {
   Pipe,
 } Stdio;
 
+typedef struct EnvVars {
+  char **names;
+  char **values;
+  unsigned long long len;
+} EnvVars;
+
+typedef struct VoidResult {
+  void *ok;
+  char *err;
+  enum ErrorType error_type;
+} VoidResult;
+
 typedef struct UnitResult {
   int ok;
   char *err;
@@ -23,33 +35,20 @@ typedef struct IntResult {
   enum ErrorType error_type;
 } IntResult;
 
-typedef struct VoidResult {
-  void *ok;
-  char *err;
-  enum ErrorType error_type;
-} VoidResult;
-
 typedef struct Output {
   int exit_code;
   char *stdout_content;
   char *stderr_content;
 } Output;
 
-void *stdin_child(const void *child);
+/**
+ * # Safety
+ */
+char *env_var(const char *name);
 
-void *stdout_child(const void *child);
+struct EnvVars env_vars(void);
 
-void *stderr_child(const void *child);
-
-struct UnitResult kill_child(const void *child);
-
-unsigned int id_child(const void *child);
-
-struct IntResult wait_child(const void *child);
-
-struct VoidResult wait_with_output_child(void *child);
-
-void drop_child(void *child);
+void drop_env_vars(struct EnvVars env_vars);
 
 /**
  * # Safety
@@ -80,6 +79,27 @@ void drop_stdin(void *reader);
 
 void drop_stdout(void *reader);
 
+void *buffered_stdin_child(const void *child);
+
+void *buffered_stdout_child(const void *child);
+
+void *buffered_stderr_child(const void *child);
+
+struct UnitResult kill_child(const void *child);
+
+unsigned int id_child(const void *child);
+
+struct IntResult wait_child(const void *child);
+
+/**
+ * The returned [Output] will empty
+ * if convert the [Child.stdout] and [Child.stderr] to buffered
+ * with [buffered_stdout_child] and [buffered_stderr_child]
+ */
+struct VoidResult wait_with_output_child(void *child);
+
+void drop_child(void *child);
+
 /**
  * # Safety
  * Will not move the [name]'s ownership
@@ -87,7 +107,7 @@ void drop_stdout(void *reader);
  *
  * ```rust
  * use kommand_core::ffi_util::as_cstring;
- * use kommand_core::kommand::{drop_command, new_command};
+ * use kommand_core::process::{drop_command, new_command};
  * unsafe {
  *     let command = new_command(as_cstring("pwd").as_ptr());
  *     drop_command(command);
@@ -99,7 +119,7 @@ void *new_command(const char *name);
 /**
  * ```rust
  * use kommand_core::ffi_util::{as_cstring, drop_string};
- * use kommand_core::kommand::{display_command, drop_command, new_command};
+ * use kommand_core::process::{display_command, drop_command, new_command};
  * unsafe {
  *     let command = new_command(as_cstring("pwd").as_ptr());
  *     let display = display_command(command);
@@ -113,7 +133,7 @@ char *display_command(const void *command);
 /**
  * ```rust
  * use kommand_core::ffi_util::{as_cstring, drop_string};
- * use kommand_core::kommand::{debug_command, drop_command, new_command};
+ * use kommand_core::process::{debug_command, drop_command, new_command};
  * unsafe {
  *     let command = new_command(as_cstring("pwd").as_ptr());
  *     let debug = debug_command(command);
@@ -127,7 +147,7 @@ char *debug_command(const void *command);
 /**
  * ```rust
  * use kommand_core::ffi_util::as_cstring;
- * use kommand_core::kommand::{drop_command, new_command};
+ * use kommand_core::process::{drop_command, new_command};
  * unsafe {
  *     let command = new_command(as_cstring("pwd").as_ptr());
  *     drop_command(command);
@@ -142,7 +162,7 @@ void drop_command(void *command);
  *
  * ```rust
  * use kommand_core::ffi_util::as_cstring;
- * use kommand_core::kommand::{arg_command, drop_command, new_command};
+ * use kommand_core::process::{arg_command, drop_command, new_command};
  * unsafe {
  *     let command = new_command(as_cstring("ls").as_ptr());
  *     arg_command(command, as_cstring("-l").as_ptr());
@@ -158,7 +178,7 @@ void arg_command(const void *command, const char *arg);
  *
  * ```rust
  * use kommand_core::ffi_util::as_cstring;
- * use kommand_core::kommand::{arg_command, drop_command, env_command, new_command};
+ * use kommand_core::process::{arg_command, drop_command, env_command, new_command};
  * unsafe {
  *     let command = new_command(as_cstring("echo").as_ptr());
  *     arg_command(command, as_cstring("$KOMMAND").as_ptr());

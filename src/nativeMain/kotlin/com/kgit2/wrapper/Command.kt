@@ -1,8 +1,8 @@
 package com.kgit2.wrapper
 
 import com.kgit2.exception.KommandException
-import com.kgit2.process.Child
 import com.kgit2.io.Output
+import com.kgit2.process.Child
 import com.kgit2.process.Stdio
 import kotlinx.cinterop.COpaquePointer
 

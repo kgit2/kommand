@@ -8,4 +8,7 @@ expect class BufferedWriter {
 
     @Throws(KommandException::class)
     fun flush()
+
+    @Throws(KommandException::class)
+    fun close()
 }
