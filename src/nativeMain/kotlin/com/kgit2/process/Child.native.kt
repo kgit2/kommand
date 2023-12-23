@@ -13,15 +13,19 @@ import com.kgit2.wrapper.bufferedStdoutChild
 import com.kgit2.wrapper.waitChild
 import com.kgit2.wrapper.waitWithOutputChild
 import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.COpaquePointer
+import kotlinx.coroutines.internal.synchronized
+import kotlin.concurrent.AtomicReference
 import kotlin.native.ref.createCleaner
 
 actual class Child(
     private var inner: COpaquePointer?
-) {
-    var stdin: BufferedWriter? = null
-    var stdout: BufferedReader? = null
-    var stderr: BufferedReader? = null
+): SynchronizedObject() {
+    private var stdin: AtomicReference<BufferedWriter?> = AtomicReference(null)
+    private var stdout: AtomicReference<BufferedReader?> = AtomicReference(null)
+    private var stderr: AtomicReference<BufferedReader?> = AtomicReference(null)
 
     private val isClosed = atomic(false)
 
@@ -38,24 +42,18 @@ actual class Child(
     }
 
     actual fun bufferedStdin(): BufferedWriter? {
-        if (stdin == null) {
-            updateStdin()
-        }
-        return stdin
+        stdin.compareAndSet(null, bufferedStdinChild(inner))
+        return stdin.value
     }
 
     actual fun bufferedStdout(): BufferedReader? {
-        if (stdout == null) {
-            updateStdout()
-        }
-        return stdout
+        stdout.compareAndSet(null, bufferedStdoutChild(inner))
+        return stdout.value
     }
 
     actual fun bufferedStderr(): BufferedReader? {
-        if (stderr == null) {
-            updateStderr()
-        }
-        return stderr
+        stderr.compareAndSet(null, bufferedStderrChild(inner))
+        return stderr.value
     }
 
     @Throws(KommandException::class)
@@ -65,28 +63,16 @@ actual class Child(
 
     @Throws(KommandException::class)
     actual fun wait(): Int = run {
-        stdin?.close()
+        stdin.getAndSet(null)?.close()
         waitChild(inner)
     }
 
     @Throws(KommandException::class)
     actual fun waitWithOutput(): Output = run {
-        stdin?.close()
+        stdin.getAndSet(null)?.close()
         val inner = this.inner
         this.inner = null
         isClosed.getAndSet(true)
         waitWithOutputChild(inner)
-    }
-
-    private fun updateStdin() {
-        stdin = bufferedStdinChild(inner)
-    }
-
-    private fun updateStdout() {
-        stdout = bufferedStdoutChild(inner)
-    }
-
-    private fun updateStderr() {
-        stderr = bufferedStderrChild(inner)
     }
 }
