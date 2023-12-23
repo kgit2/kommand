@@ -12,5 +12,8 @@ pub fn into_stdout(reader: *mut c_void) -> BufReader<ChildStdout> {
 
 #[no_mangle]
 pub extern "C" fn drop_stdout(reader: *mut c_void) {
+    if reader.is_null() {
+        return;
+    }
     into_stdout(reader);
 }

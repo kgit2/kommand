@@ -5,7 +5,7 @@ enum class Platform {
     MACOS_ARM64,
     LINUX_X64,
     LINUX_ARM64,
-    WINDOWS_X64,
+    MINGW_X64,
     JVM
 }
 

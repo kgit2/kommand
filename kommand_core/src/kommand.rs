@@ -79,6 +79,9 @@ pub extern "C" fn debug_command(command: *const c_void) -> *mut c_char {
 /// ```
 #[no_mangle]
 pub extern "C" fn drop_command(command: *mut c_void) {
+    if command.is_null() {
+        return;
+    }
     into_command(command);
 }
 

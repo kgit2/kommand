@@ -9,10 +9,10 @@ bench:
     time target/debug/leaks_test
 
 macosx64:
-    cargo build --release --target x86_64-apple-darwin
+    cargo build --release --package kommand-core --package kommand-echo --target x86_64-apple-darwin
 
 macosarm64:
-    cargo build --release --target aarch64-apple-darwin
+    cargo build --release --package kommand-core --package kommand-echo --target aarch64-apple-darwin
 
 macos: macosx64 macosarm64
     [ -d target/universal-apple-darwin/release ] || mkdir -p target/universal-apple-darwin/release
@@ -22,21 +22,21 @@ macos: macosx64 macosarm64
 
 linuxx64:
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-unknown-linux-gnu-gcc \
-    cargo build --release --target x86_64-unknown-linux-gnu
+    cargo build --release --package kommand-core --package kommand-echo --target x86_64-unknown-linux-gnu
 
 linuxarm64:
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-unknown-linux-gnu-gcc \
-    cargo build --release --target aarch64-unknown-linux-gnu
+    cargo build --release --package kommand-core --package kommand-echo --target aarch64-unknown-linux-gnu
 
 linux: linuxx64 linuxarm64
 
 winx64:
-    cargo build --release --target x86_64-pc-windows-gnu
-
-xwinx64:
-    CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER=/Users/bppleman/.konan/dependencies/apple-llvm-20200714-macos-x64-essentials/bin/clang++ \
-    rustup run nightly cargo xbuild -Zbuild-std --release --target x86_64-pc-windows-gnu
+    cargo build --release --package kommand-core --package kommand-echo --target x86_64-pc-windows-gnu
 
 win: winx64
 
 all: macos linux win
+
+watch:
+    cargo build --release --package kommand-watch
+    target/release/kommand-watch

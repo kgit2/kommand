@@ -12,5 +12,8 @@ pub fn into_stdin(reader: *mut c_void) -> BufWriter<ChildStdin> {
 
 #[no_mangle]
 pub extern "C" fn drop_stdin(reader: *mut c_void) {
+    if reader.is_null() {
+        return;
+    }
     into_stdin(reader);
 }

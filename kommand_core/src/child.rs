@@ -76,5 +76,8 @@ pub extern "C" fn wait_with_output_child(child: *mut c_void) -> VoidResult {
 
 #[no_mangle]
 pub extern "C" fn drop_child(child: *mut c_void) {
+    if child.is_null() {
+        return;
+    }
     into_child(child);
 }

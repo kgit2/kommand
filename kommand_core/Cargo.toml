@@ -1,9 +1,22 @@
-[package]
-name = "kommand_core"
+[workspace]
+members = [
+    "kommand-watch",
+    "kommand-echo",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
+authors = ["BppleMan"]
+
+[package]
+name = "kommand-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
 
 [lib]
+name = "kommand_core"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]

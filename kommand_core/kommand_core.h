@@ -57,6 +57,8 @@ void drop_child(void *child);
  */
 void drop_string(char *string);
 
+char *void_to_string(void *ptr);
+
 struct VoidResult read_line_stdout(const void *reader);
 
 struct VoidResult read_all_stdout(const void *reader);
@@ -69,6 +71,8 @@ struct VoidResult read_all_stderr(const void *reader);
  * # Safety
  */
 struct UnitResult write_line_stdin(const void *writer, const char *line);
+
+struct UnitResult flush_stdin(const void *writer);
 
 void drop_stderr(void *reader);
 

@@ -50,6 +50,11 @@ pub unsafe extern "C" fn write_line_stdin(
     let writer = stdin::as_stdin_mut(&mut writer);
     let line = as_string(line);
     let result = writer.write_all(line.as_bytes());
-    writer.flush().unwrap();
     result.into()
+}
+
+#[no_mangle]
+pub extern "C" fn flush_stdin(mut writer: *const c_void) -> UnitResult {
+    let writer = stdin::as_stdin_mut(&mut writer);
+    writer.flush().into()
 }

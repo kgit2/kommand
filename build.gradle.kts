@@ -13,14 +13,6 @@ plugins {
 group = "com.kgit2"
 version = "1.2.0"
 
-val mainHost = Platform.MACOS_X64
-val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "MACOS_X64")
-// for debug
-// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "MACOS_ARM64")
-// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "LINUX_X64")
-// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "LINUX_ARM64")
-// val targetPlatform = Platform.valueOf(project.findProperty("targetPlatform")?.toString() ?: "MINGW_X64")
-
 val ktorIO = "2.3.4"
 
 repositories {
@@ -39,13 +31,6 @@ kotlin {
         }
     }
 
-    // val nativeTarget = when (targetPlatform) {
-    //     Platform.MACOS_X64 -> macosX64("native")
-    //     Platform.MACOS_ARM64 -> macosArm64("native")
-    //     Platform.LINUX_X64 -> linuxX64("native")
-    //     Platform.LINUX_ARM64 -> linuxArm64("native")
-    //     Platform.MINGW_X64 -> mingwX64("native")
-    // }
     val nativeTargets = listOf(
         macosX64() to Platform.MACOS_X64,
         macosArm64() to Platform.MACOS_ARM64,
@@ -93,50 +78,23 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-
-        // val jvmMain by getting
-        // val jvmTest by getting
-        //
-        // val targetSourceSetName = when (targetPlatform) {
-        //     Platform.MACOS_X64 -> "macosX64"
-        //     Platform.MACOS_ARM64 -> "macosArm64"
-        //     Platform.LINUX_X64 -> "linuxX64"
-        //     Platform.LINUX_ARM64 -> "linuxArm64"
-        //     Platform.MINGW_X64 -> "mingwX64"
-        // }
-        //
-        // val targetMain = create("${targetSourceSetName}Main") {
-        //     dependsOn(commonMain)
-        // }
-        // val targetTest = create("${targetSourceSetName}Test") {
-        //     dependsOn(commonTest)
-        // }
-        //
-        // val nativeMain by getting {
-        //     dependsOn(targetMain)
-        // }
-        // val nativeTest by getting {
-        //     dependsOn(targetTest)
-        // }
     }
 }
 
-val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
-
-val buildEko = tasks.create("buildEko") {
-    group = "build"
+val buildKommandEcho = tasks.create("buildKommandEcho") {
+    group = "kommand_core"
     doLast {
-        ProcessBuilder("bash", "-c", "cargo build --release")
-            .directory(file("eko"))
-            .inheritIO()
-            .start()
-            .waitFor()
+        // ProcessBuilder("bash", "-c", "cargo build --release")
+        //     .directory(file("eko"))
+        //     .inheritIO()
+        //     .start()
+        //     .waitFor()
     }
 }
 
 tasks.forEach {
     if (it.group == "verification" || it.path.contains("Test")) {
-        it.dependsOn(buildEko)
+        it.dependsOn(buildKommandEcho)
     }
 }
 
@@ -161,11 +119,7 @@ val ossrhPassword = runCatching {
 }.getOrNull()
 
 if (ossrhUsername != null && ossrhPassword != null) {
-    val keyId = project.findProperty("signing.keyId") as String?
-    val keyPass = project.findProperty("signing.password") as String?
-    val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
-
-    val dokkaOutputDir = "$buildDir/dokka"
+    val dokkaOutputDir = layout.buildDirectory.dir("dokka")
 
     tasks.getByName<DokkaTask>("dokkaHtml") {
         outputDirectory.set(file(dokkaOutputDir))
@@ -213,7 +167,7 @@ if (ossrhUsername != null && ossrhPassword != null) {
                     licenses {
                         license {
                             name.set("The Apache License, Version 2.0")
-                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                         }
                     }
                     scm {
@@ -233,6 +187,10 @@ if (ossrhUsername != null && ossrhPassword != null) {
     }
 
     signing {
+        // will default find the
+        // - signing.keyId
+        // - signing.password
+        // - signing.secretKeyRingFile
         sign(publishing.publications)
     }
 }

@@ -1,8 +1,9 @@
 package com.kgit2.wrapper
 
-import com.kgit2.Child
-import com.kgit2.Output
-import com.kgit2.Stdio
+import com.kgit2.exception.KommandException
+import com.kgit2.process.Child
+import com.kgit2.io.Output
+import com.kgit2.process.Stdio
 import kotlinx.cinterop.COpaquePointer
 
 expect fun newCommand(command: String): COpaquePointer?
@@ -29,8 +30,11 @@ expect fun stdoutCommand(command: COpaquePointer?, stdio: Stdio)
 
 expect fun stderrCommand(command: COpaquePointer?, stdio: Stdio)
 
+@Throws(KommandException::class)
 expect fun spawnCommand(command: COpaquePointer?): Child
 
+@Throws(KommandException::class)
 expect fun outputCommand(command: COpaquePointer?): Output
 
-expect fun statusCommand(command: COpaquePointer?): Int?
+@Throws(KommandException::class)
+expect fun statusCommand(command: COpaquePointer?): Int

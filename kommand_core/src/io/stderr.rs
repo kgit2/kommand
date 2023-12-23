@@ -12,5 +12,8 @@ pub fn into_stderr(reader: *mut c_void) -> BufReader<ChildStderr> {
 
 #[no_mangle]
 pub extern "C" fn drop_stderr(reader: *mut c_void) {
+    if reader.is_null() {
+        return;
+    }
     into_stderr(reader);
 }
