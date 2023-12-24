@@ -3,10 +3,8 @@ package com.kgit2.process
 import com.kgit2.exception.KommandException
 import com.kgit2.io.Output
 
-expect class Command {
+expect class Command(command: String) {
     val command: String
-
-    constructor(command: String)
 
     fun debugString(): String
 

@@ -1,5 +1,7 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     kotlin("multiplatform")
@@ -66,6 +68,12 @@ kotlin {
             languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
             languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+
+            languageSettings {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
         }
 
         val commonMain by getting {
@@ -81,34 +89,51 @@ kotlin {
     }
 }
 
-val buildKommandEcho = tasks.create("buildKommandEcho") {
-    group = "kommand_core"
-    doLast {
-        // ProcessBuilder("bash", "-c", "cargo build --release")
-        //     .directory(file("eko"))
-        //     .inheritIO()
-        //     .start()
-        //     .waitFor()
-    }
-}
-
-tasks.forEach {
-    if (it.group == "verification" || it.path.contains("Test")) {
-        it.dependsOn(buildKommandEcho)
-    }
-}
-
-tasks.withType(Test::class) {
-    testLogging {
-        showStandardStreams = true
-    }
-}
-
 tasks {
     val wrapper by getting(Wrapper::class) {
         distributionType = Wrapper.DistributionType.ALL
         gradleVersion = "8.2"
     }
+
+    val buildKommandEcho by creating {
+        group = "kommand_core"
+        doLast {
+            buildKommandCore()
+        }
+    }
+
+    forEach {
+        if (it.group == "verification" || it.path.contains("Test")) {
+            it.dependsOn(buildKommandEcho)
+        }
+    }
+
+    withType(Test::class) {
+        testLogging {
+            showStandardStreams = true
+        }
+    }
+
+    // withType(KotlinNativeCompile::class) {
+    //     compilerOptions {
+    //         freeCompilerArgs.add("-Xexpect-actual-classes")
+    //     }
+    // }
+
+    // withType(KotlinNativeLink::class) {
+    //     doFirst {
+    //         println(this.name)
+    //         val targetPlatform = when (this.name) {
+    //             "linkDebugTestMacosX64" -> Platform.MACOS_X64
+    //             "linkDebugTestMacosArm64" -> Platform.MACOS_ARM64
+    //             "linkDebugTestLinuxX64" -> Platform.LINUX_X64
+    //             "linkDebugTestLinuxArm64" -> Platform.LINUX_ARM64
+    //             "linkDebugTestMingwX64" -> Platform.MINGW_X64
+    //             else -> throw GradleException("Unknown platform")
+    //         }
+    //         buildKommandCore(this.outputs.files.asPath, targetPlatform)
+    //     }
+    // }
 }
 
 val ossrhUrl: String = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
@@ -238,3 +263,35 @@ val platforms: List<Platform> = listOf(
     Platform.LINUX_ARM64,
     Platform.MINGW_X64,
 )
+
+fun buildKommandCore(targetPath: String? = null, targetPlatform: Platform? = null) {
+    ProcessBuilder("just", "all")
+        .directory(file("kommand-core"))
+        .inheritIO()
+        .start()
+        .waitFor()
+    if (targetPath != null && targetPlatform != null) {
+        when (targetPlatform) {
+            Platform.MACOS_X64 -> {
+                file("kommand-core/target/x86_64-apple-darwin/release/kommand-echo")
+                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
+            }
+            Platform.MACOS_ARM64 -> {
+                file("kommand-core/target/aarch64-apple-darwin/release/kommand-echo")
+                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
+            }
+            Platform.LINUX_X64 -> {
+                file("kommand-core/target/x86_64-unknown-linux-gnu/release/kommand-echo")
+                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
+            }
+            Platform.LINUX_ARM64 -> {
+                file("kommand-core/target/aarch64-unknown-linux-gnu/release/kommand-echo")
+                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
+            }
+            Platform.MINGW_X64 -> {
+                file("kommand-core/target/x86_64-pc-windows-gnu/release/kommand-echo.exe")
+                    .copyTo(file(targetPath).resolve("kommand-echo.exe"), true)
+            }
+        }
+    }
+}
