@@ -8,32 +8,28 @@ bench:
     cargo build
     time target/debug/leaks_test
 
-macosx64:
+x86_64-apple-darwin:
     cargo build --release --package kommand-core --package kommand-echo --target x86_64-apple-darwin
 
-macosarm64:
+aarch64-apple-darwin:
     cargo build --release --package kommand-core --package kommand-echo --target aarch64-apple-darwin
 
-macos: macosx64 macosarm64
-    [ -d target/universal-apple-darwin/release ] || mkdir -p target/universal-apple-darwin/release
-    lipo -create -output target/universal-apple-darwin/release/libkommand_core.a \
-        target/x86_64-apple-darwin/release/libkommand_core.a \
-        target/aarch64-apple-darwin/release/libkommand_core.a
+macos: x86_64-apple-darwin aarch64-apple-darwin
 
-linuxx64:
+x86_64-unknown-linux-gnu:
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-unknown-linux-gnu-gcc \
     cargo build --release --package kommand-core --package kommand-echo --target x86_64-unknown-linux-gnu
 
-linuxarm64:
+aarch64-unknown-linux-gnu:
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-unknown-linux-gnu-gcc \
     cargo build --release --package kommand-core --package kommand-echo --target aarch64-unknown-linux-gnu
 
-linux: linuxx64 linuxarm64
+linux: x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
 
-winx64:
+x86_64-pc-windows-gnu:
     cargo build --release --package kommand-core --package kommand-echo --target x86_64-pc-windows-gnu
 
-win: winx64
+win: x86_64-pc-windows-gnu
 
 all: macos linux win
 
@@ -44,3 +40,7 @@ watch:
 build-kommand-echo:
     cargo build --package kommand-echo
     cargo build --release --package kommand-echo
+
+workflow dir:
+    cargo build --release --package kommand-core --package kommand-echo
+    cd target && mkdir {{dir}} && mv ./release ./{{dir}}/release/

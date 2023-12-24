@@ -46,11 +46,7 @@ kotlin {
             compilations.getByName("main") {
                 cinterops {
                     val kommandCore by creating {
-                        if (targetPlatform.toString().contains("macos")) {
-                            defFile(project.file("src/nativeInterop/cinterop/macos.def"))
-                        } else {
-                            defFile(project.file("src/nativeInterop/cinterop/${targetPlatform}.def"))
-                        }
+                        defFile(project.file("src/nativeInterop/cinterop/${targetPlatform.archName}.def"))
                         packageName("kommand_core")
                     }
                 }
@@ -104,7 +100,7 @@ tasks {
 
     forEach {
         if (it.group == "verification" || it.path.contains("Test")) {
-            it.dependsOn(buildKommandEcho)
+            // it.dependsOn(buildKommandEcho)
         }
     }
 
@@ -235,16 +231,6 @@ enum class Platform(
     LINUX_ARM64("aarch64-unknown-linux-gnu"),
     MINGW_X64("x86_64-pc-windows-gnu"),
     ;
-
-    override fun toString(): String {
-        return when (this) {
-            MACOS_X64 -> "macosx64"
-            MACOS_ARM64 -> "macosarm64"
-            LINUX_X64 -> "linuxx64"
-            LINUX_ARM64 -> "linuxarm64"
-            MINGW_X64 -> "mingw64"
-        }
-    }
 }
 
 val currentPlatform: Platform = when {
@@ -271,27 +257,11 @@ fun buildKommandCore(targetPath: String? = null, targetPlatform: Platform? = nul
         .start()
         .waitFor()
     if (targetPath != null && targetPlatform != null) {
-        when (targetPlatform) {
-            Platform.MACOS_X64 -> {
-                file("kommand-core/target/x86_64-apple-darwin/release/kommand-echo")
-                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
-            }
-            Platform.MACOS_ARM64 -> {
-                file("kommand-core/target/aarch64-apple-darwin/release/kommand-echo")
-                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
-            }
-            Platform.LINUX_X64 -> {
-                file("kommand-core/target/x86_64-unknown-linux-gnu/release/kommand-echo")
-                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
-            }
-            Platform.LINUX_ARM64 -> {
-                file("kommand-core/target/aarch64-unknown-linux-gnu/release/kommand-echo")
-                    .copyTo(file(targetPath).resolve("kommand-echo"), true)
-            }
-            Platform.MINGW_X64 -> {
-                file("kommand-core/target/x86_64-pc-windows-gnu/release/kommand-echo.exe")
-                    .copyTo(file(targetPath).resolve("kommand-echo.exe"), true)
-            }
+        var kommandEchoName = "kommand-echo"
+        if (targetPlatform == Platform.MINGW_X64) {
+            kommandEchoName += ".exe"
         }
+        file("kommand-core/target/${targetPlatform.archName}/release/${kommandEchoName}")
+            .copyTo(file(targetPath).resolve(kommandEchoName), true)
     }
 }

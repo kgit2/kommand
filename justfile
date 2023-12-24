@@ -73,3 +73,10 @@ autoPublish: publishToSonatype closeSonatype releaseSonatype
 leaks:
     ./gradlew :cleanMacosX64Test :macosX64Test
     leaks -atExit -- build/bin/macosX64/debugTest/test.kexe
+
+teamcity:
+    #-v <path to logs directory>:/opt/teamcity/logs
+    docker run --name teamcity-server-instance \
+    -v ./:/data/teamcity_server/kommand \
+    -p 8111:8111 \
+    jetbrains/teamcity-server
