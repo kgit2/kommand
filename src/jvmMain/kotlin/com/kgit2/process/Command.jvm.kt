@@ -21,12 +21,12 @@ actual class Command(
     }
 
     actual fun arg(arg: String): Command {
-        builder.command(arg)
+        builder.command().add(arg)
         return this
     }
 
     actual fun args(args: List<String>): Command {
-        builder.command(args)
+        builder.command().addAll(args)
         return this
     }
 
@@ -73,7 +73,7 @@ actual class Command(
     @Throws(KommandException::class)
     actual fun spawn(): Child {
         val process = builder.start()
-        return com.kgit2.process.Child(process)
+        return Child(process)
     }
 
     @Throws(KommandException::class)

@@ -4,19 +4,18 @@ import com.kgit2.exception.KommandException
 import com.kgit2.io.BufferedReader
 import com.kgit2.io.BufferedWriter
 import com.kgit2.io.Output
-import com.kgit2.wrapper.dropChild
-import com.kgit2.wrapper.idChild
-import com.kgit2.wrapper.killChild
 import com.kgit2.wrapper.bufferedStderrChild
 import com.kgit2.wrapper.bufferedStdinChild
 import com.kgit2.wrapper.bufferedStdoutChild
+import com.kgit2.wrapper.dropChild
+import com.kgit2.wrapper.idChild
+import com.kgit2.wrapper.killChild
 import com.kgit2.wrapper.waitChild
 import com.kgit2.wrapper.waitWithOutputChild
+import kommand_core.id_child
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.COpaquePointer
-import kotlinx.coroutines.internal.synchronized
 import kotlin.concurrent.AtomicReference
 import kotlin.native.ref.createCleaner
 
@@ -38,7 +37,7 @@ actual class Child(
     companion object;
 
     actual fun id(): UInt {
-        return idChild(inner)
+        return id_child(inner)
     }
 
     actual fun bufferedStdin(): BufferedWriter? {

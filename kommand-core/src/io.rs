@@ -17,7 +17,10 @@ pub use stdout::drop_stdout;
 pub extern "C" fn read_line_stdout(mut reader: *const c_void) -> VoidResult {
     let reader = as_stdout_mut(&mut reader);
     let mut line = String::new();
-    reader.read_line(&mut line).map(|_| line).into()
+    reader
+        .read_line(&mut line)
+        .map(|_| line.trim_end_matches('\n').to_string())
+        .into()
 }
 
 #[no_mangle]
@@ -31,7 +34,10 @@ pub extern "C" fn read_all_stdout(mut reader: *const c_void) -> VoidResult {
 pub extern "C" fn read_line_stderr(mut reader: *const c_void) -> VoidResult {
     let reader = stderr::as_stderr_mut(&mut reader);
     let mut line = String::new();
-    reader.read_line(&mut line).map(|_| line).into()
+    reader
+        .read_line(&mut line)
+        .map(|_| line.trim_end_matches('\n').to_string())
+        .into()
 }
 
 #[no_mangle]
@@ -49,7 +55,10 @@ pub unsafe extern "C" fn write_line_stdin(
 ) -> UnitResult {
     let writer = stdin::as_stdin_mut(&mut writer);
     let line = as_string(line);
-    let result = writer.write_all(line.as_bytes());
+    let result = writer
+        .write_all(line.as_bytes())
+        .and_then(|_| writer.write(b"\n"))
+        .map(|_| ());
     result.into()
 }
 

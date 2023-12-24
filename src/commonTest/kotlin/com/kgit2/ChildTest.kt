@@ -32,7 +32,7 @@ class ChildTest {
         var line = child.bufferedStdout()?.readLine()
         var expect = 0
         while (!line.isNullOrEmpty()) {
-            assertEquals("$expect\n", line)
+            assertEquals(expect.toString(), line)
             line = child.bufferedStdout()?.readLine()
             expect += 1
         }
@@ -47,7 +47,7 @@ class ChildTest {
                 .stdin(Stdio.Pipe)
                 .stdout(Stdio.Pipe)
             val child = command.spawn()
-            val expect = "Hello World!\n"
+            val expect = "Hello World!"
             child.bufferedStdin()?.writeLine(expect)
             child.bufferedStdin()?.flush()
             val line = child.bufferedStdout()?.readLine()
@@ -64,7 +64,7 @@ class ChildTest {
                 .stdin(Stdio.Pipe)
                 .stdout(Stdio.Pipe)
             val child = command.spawn()
-            val expect = "Hello World!\n"
+            val expect = "Hello World!"
             for (j in 0 .. 100) {
                 child.bufferedStdin()?.writeLine("[$j]$expect")
                 child.bufferedStdin()?.flush()

@@ -1,11 +1,21 @@
 package com.kgit2.io
 
-actual class BufferedReader {
+import com.kgit2.exception.KommandException
+
+actual class BufferedReader(
+    private val reader: java.io.BufferedReader,
+) {
+    @Throws(KommandException::class)
     actual fun readLine(): String? {
-        return ""
+        return reader.readLine()
     }
 
+    @Throws(KommandException::class)
     actual fun readAll(): String? {
-        return ""
+        return reader.readText()
+    }
+
+    fun close() {
+        reader.close()
     }
 }
