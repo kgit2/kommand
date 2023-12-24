@@ -9,9 +9,10 @@ name: Kommand Test
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev", "v2.0" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
