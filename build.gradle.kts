@@ -1,4 +1,7 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     kotlin("multiplatform")
@@ -22,7 +25,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11"
+            kotlinOptions.jvmTarget = "17"
         }
         withJava()
         testRuns["test"].executionTask.configure {
@@ -31,19 +34,42 @@ kotlin {
     }
 
     val nativeTargets = listOf(
-        macosArm64(),
-        macosX64(),
-        linuxX64(),
-        linuxArm64(),
-        mingwX64(),
+        macosX64() to Platform.MACOS_X64,
+        macosArm64() to Platform.MACOS_ARM64,
+        linuxX64() to Platform.LINUX_X64,
+        linuxArm64() to Platform.LINUX_ARM64,
+        mingwX64() to Platform.MINGW_X64,
     )
+
+    nativeTargets.forEach { (nativeTarget, targetPlatform) ->
+        nativeTarget.apply {
+            compilations.getByName("main") {
+                cinterops {
+                    val kommandCore by creating {
+                        defFile(project.file("src/nativeInterop/cinterop/${targetPlatform.archName}.def"))
+                        packageName("kommand_core")
+                    }
+                }
+            }
+        }
+    }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         // add opt-in
         all {
             languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
             languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
-            // languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+            languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
+            languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+
+            languageSettings {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
         }
 
         val commonMain by getting {
@@ -56,76 +82,54 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-
-        val jvmMain by getting
-        val jvmTest by getting
-
-        val posixMain by creating {
-            dependsOn(commonMain)
-        }
-        val posixTest by creating {
-            dependsOn(commonTest)
-            dependencies {
-                implementation("io.ktor:ktor-server-core:2.3.4")
-                implementation("io.ktor:ktor-server-cio:2.3.4")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-            }
-        }
-
-        val unixLikeMain by creating {
-            dependsOn(posixMain)
-        }
-        val unixLikeTest by creating {
-            dependsOn(posixTest)
-        }
-        val macosArm64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val macosArm64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val macosX64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val macosX64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val linuxX64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val linuxX64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val linuxArm64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val linuxArm64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val mingwX64Main by getting {
-            dependsOn(posixMain)
-        }
-        val mingwX64Test by getting
     }
 }
 
-val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
-
-val buildEko = tasks.create("buildEko") {
-    group = "build"
-    doLast {
-        ProcessBuilder("bash", "-c", "cargo build --release")
-            .directory(file("eko"))
-            .inheritIO()
-            .start()
-            .waitFor()
+tasks {
+    val wrapper by getting(Wrapper::class) {
+        distributionType = Wrapper.DistributionType.ALL
+        gradleVersion = "8.2"
     }
-}
 
-tasks.forEach {
-    if (it.group == "verification" || it.path.contains("Test")) {
-        it.dependsOn(buildEko)
+    val buildKommandEcho by creating {
+        group = "kommand_core"
+        doLast {
+            buildKommandCore()
+        }
     }
+
+    forEach {
+        if (it.group == "verification" || it.path.contains("Test")) {
+            // it.dependsOn(buildKommandEcho)
+        }
+    }
+
+    withType(Test::class) {
+        testLogging {
+            showStandardStreams = true
+        }
+    }
+
+    // withType(KotlinNativeCompile::class) {
+    //     compilerOptions {
+    //         freeCompilerArgs.add("-Xexpect-actual-classes")
+    //     }
+    // }
+
+    // withType(KotlinNativeLink::class) {
+    //     doFirst {
+    //         println(this.name)
+    //         val targetPlatform = when (this.name) {
+    //             "linkDebugTestMacosX64" -> Platform.MACOS_X64
+    //             "linkDebugTestMacosArm64" -> Platform.MACOS_ARM64
+    //             "linkDebugTestLinuxX64" -> Platform.LINUX_X64
+    //             "linkDebugTestLinuxArm64" -> Platform.LINUX_ARM64
+    //             "linkDebugTestMingwX64" -> Platform.MINGW_X64
+    //             else -> throw GradleException("Unknown platform")
+    //         }
+    //         buildKommandCore(this.outputs.files.asPath, targetPlatform)
+    //     }
+    // }
 }
 
 val ossrhUrl: String = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
@@ -142,11 +146,7 @@ val ossrhPassword = runCatching {
 }.getOrNull()
 
 if (ossrhUsername != null && ossrhPassword != null) {
-    val keyId = project.findProperty("signing.keyId") as String?
-    val keyPass = project.findProperty("signing.password") as String?
-    val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
-
-    val dokkaOutputDir = "$buildDir/dokka"
+    val dokkaOutputDir = layout.buildDirectory.dir("dokka")
 
     tasks.getByName<DokkaTask>("dokkaHtml") {
         outputDirectory.set(file(dokkaOutputDir))
@@ -194,7 +194,7 @@ if (ossrhUsername != null && ossrhPassword != null) {
                     licenses {
                         license {
                             name.set("The Apache License, Version 2.0")
-                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                         }
                     }
                     scm {
@@ -214,6 +214,54 @@ if (ossrhUsername != null && ossrhPassword != null) {
     }
 
     signing {
+        // will default find the
+        // - signing.keyId
+        // - signing.password
+        // - signing.secretKeyRingFile
         sign(publishing.publications)
+    }
+}
+
+enum class Platform(
+    val archName: String
+) {
+    MACOS_X64("x86_64-apple-darwin"),
+    MACOS_ARM64("aarch64-apple-darwin"),
+    LINUX_X64("x86_64-unknown-linux-gnu"),
+    LINUX_ARM64("aarch64-unknown-linux-gnu"),
+    MINGW_X64("x86_64-pc-windows-gnu"),
+    ;
+}
+
+val currentPlatform: Platform = when {
+    DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MACOS_X64
+    DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isArm64 -> Platform.MACOS_ARM64
+    DefaultNativePlatform.getCurrentOperatingSystem().isLinux && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.LINUX_X64
+    DefaultNativePlatform.getCurrentOperatingSystem().isLinux && DefaultNativePlatform.getCurrentArchitecture().isArm64 -> Platform.LINUX_ARM64
+    DefaultNativePlatform.getCurrentOperatingSystem().isWindows && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MINGW_X64
+    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+}
+
+val platforms: List<Platform> = listOf(
+    Platform.MACOS_X64,
+    Platform.MACOS_ARM64,
+    Platform.LINUX_X64,
+    Platform.LINUX_ARM64,
+    Platform.MINGW_X64,
+)
+
+fun buildKommandCore(targetPath: String? = null, targetPlatform: Platform? = null) {
+    ProcessBuilder("just", "all")
+        .directory(file("kommand-core"))
+        .inheritIO()
+        .start()
+        .waitFor()
+    if (targetPath != null && targetPlatform != null) {
+        var kommandEchoName = "kommand-echo"
+        if (targetPlatform == Platform.MINGW_X64) {
+            kommandEchoName += ".exe"
+        }
+        file("kommand-core/target/${targetPlatform.archName}/release/${kommandEchoName}")
+            .copyTo(file(targetPath).resolve(kommandEchoName), true)
     }
 }

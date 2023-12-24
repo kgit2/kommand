@@ -1,0 +1,46 @@
+#!/usr/bin/env just --justfile
+
+leaks:
+    cargo build
+    leaks -atExit -- target/debug/leaks_test
+
+bench:
+    cargo build
+    time target/debug/leaks_test
+
+x86_64-apple-darwin:
+    cargo build --release --package kommand-core --package kommand-echo --target x86_64-apple-darwin
+
+aarch64-apple-darwin:
+    cargo build --release --package kommand-core --package kommand-echo --target aarch64-apple-darwin
+
+macos: x86_64-apple-darwin aarch64-apple-darwin
+
+x86_64-unknown-linux-gnu:
+    CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-unknown-linux-gnu-gcc \
+    cargo build --release --package kommand-core --package kommand-echo --target x86_64-unknown-linux-gnu
+
+aarch64-unknown-linux-gnu:
+    CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-unknown-linux-gnu-gcc \
+    cargo build --release --package kommand-core --package kommand-echo --target aarch64-unknown-linux-gnu
+
+linux: x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
+
+x86_64-pc-windows-gnu:
+    cargo build --release --package kommand-core --package kommand-echo --target x86_64-pc-windows-gnu
+
+win: x86_64-pc-windows-gnu
+
+all: macos linux win
+
+watch:
+    cargo build --release --package kommand-watch
+    target/release/kommand-watch
+
+build-kommand-echo:
+    cargo build --package kommand-echo
+    cargo build --release --package kommand-echo
+
+workflow dir:
+    cargo build --release --package kommand-core --package kommand-echo
+    cd target && mkdir {{dir}} && mv ./release ./{{dir}}/release/

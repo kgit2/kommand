@@ -1,103 +1,47 @@
 package com.kgit2.process
 
-public class Command(
+import com.kgit2.exception.KommandException
+import com.kgit2.io.Output
+
+expect class Command(command: String) {
     val command: String
-) {
-    private val args = mutableListOf<String>()
-    private val envs = mutableMapOf<String, String>()
-    private var cwd: String? = null
 
-    private var stdin: Stdio = Stdio.Inherit
-    private var stdout: Stdio = Stdio.Inherit
-    private var stderr: Stdio = Stdio.Inherit
+    fun debugString(): String
 
-    public fun arg(arg: String): Command {
-        this.args.addAll(arg.split(" "))
-        return this
-    }
+    fun arg(arg: String): Command
 
-    public fun args(vararg args: String): Command {
-        this.args.addAll(args)
-        return this
-    }
+    fun args(args: List<String>): Command
 
-    public fun env(key: String, value: String): Command {
-        this.envs[key] = value
-        return this
-    }
+    fun env(key: String, value: String): Command
 
-    public fun envs(vararg envs: Pair<String, String>): Command {
-        this.envs.putAll(envs)
-        return this
-    }
+    fun envs(envs: Map<String, String>): Command
 
-    public fun cwd(cwd: String?): Command {
-        this.cwd = cwd
-        return this
-    }
+    fun removeEnv(key: String): Command
 
+    fun envClear(): Command
 
-    public fun stdin(stdin: Stdio): Command {
-        this.stdin = stdin
-        return this
-    }
+    fun cwd(dir: String): Command
 
-    public fun stdout(io: Stdio): Command {
-        this.stdout = io
-        return this
-    }
+    fun stdin(stdio: Stdio): Command
 
-    public fun stderr(io: Stdio): Command {
-        this.stderr = io
-        return this
-    }
+    fun stdout(stdio: Stdio): Command
 
-    public fun spawn(): Child {
-        val child = Child(
-            command = command,
-            args = args,
-            envs = envs,
-            cwd = cwd,
-            stdin = stdin,
-            stdout = stdout,
-            stderr = stderr,
-        )
-        child.start()
-        return child
-    }
+    fun stderr(stdio: Stdio): Command
 
-    public fun output(): String? {
-        return spawn().waitWithOutput()
-    }
+    @Throws(KommandException::class)
+    fun spawn(): Child
 
-    public fun status(): ChildExitStatus {
-        return spawn().wait()
-    }
+    @Throws(KommandException::class)
+    fun output(): Output
 
-    public fun getArgs(): List<String> {
-        return args
-    }
-
-    public fun getEnvs(): Map<String, String> {
-        return envs
-    }
-
-    public fun getCwd(): String? {
-        return cwd
-    }
-
-    override fun toString(): String {
-        return "Command(command='$command', args=$args, envs=$envs, cwd=$cwd, stdin=$stdin, stdout=$stdout, stderr=$stderr)"
-    }
-
-    public fun prompt(): String {
-        return "$command ${args.joinToString(" ")}"
-    }
+    @Throws(KommandException::class)
+    fun status(): Int
 }
-
 
 enum class Stdio {
     Inherit,
     Pipe,
     Null,
+    ;
+    companion object;
 }

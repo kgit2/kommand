@@ -1,3 +1,5 @@
+[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
+
 ![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
 # Kommand

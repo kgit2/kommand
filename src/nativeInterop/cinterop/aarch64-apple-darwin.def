@@ -1,0 +1,4 @@
+headers = kommand_core.h
+staticLibraries = libkommand_core.a
+compilerOpts = -Ikommand-core
+libraryPaths = kommand-core/target/aarch64-apple-darwin/release
