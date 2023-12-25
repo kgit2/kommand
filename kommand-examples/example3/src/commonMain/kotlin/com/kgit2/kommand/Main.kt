@@ -4,10 +4,9 @@ import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 
 fun main() {
-    Command("ping")
-        .args(listOf("-c", "5", "localhost"))
-        .stdout(Stdio.Inherit)
+    Command("echo")
+        .arg("nothing")
+        .stdout(Stdio.Null)
         .spawn()
         .wait()
-    TODO("Need other more representative examples")
 }
