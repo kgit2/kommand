@@ -15,6 +15,11 @@ actual class BufferedReader(
         return reader.readText()
     }
 
+    @Throws(KommandException::class)
+    actual fun lines(): Sequence<String> {
+        return reader.lineSequence()
+    }
+
     fun close() {
         reader.close()
     }

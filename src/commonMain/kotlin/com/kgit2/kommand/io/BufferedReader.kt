@@ -8,4 +8,7 @@ expect class BufferedReader {
 
     @Throws(KommandException::class)
     fun readAll(): String?
+
+    @Throws(KommandException::class)
+    fun lines(): Sequence<String>
 }

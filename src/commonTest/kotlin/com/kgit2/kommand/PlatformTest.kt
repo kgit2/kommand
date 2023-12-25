@@ -1,8 +1,6 @@
 package com.kgit2.kommand
 
-import com.kgit2.kommand.Platform
 import com.kgit2.kommand.env.envVar
-import com.kgit2.kommand.platform
 import com.kgit2.kommand.process.Command
 import kotlin.test.Test
 

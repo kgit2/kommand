@@ -9,6 +9,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/kommand-examples" />
+            <option value="$PROJECT_DIR$/kommand-examples/example1" />
+            <option value="$PROJECT_DIR$/kommand-examples/example2" />
+            <option value="$PROJECT_DIR$/kommand-examples/example3" />
           </set>
         </option>
       </GradleProjectSettings>

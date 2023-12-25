@@ -9,6 +9,10 @@ import kommand_core.read_all_stdout
 import kommand_core.read_line_stderr
 import kommand_core.read_line_stdout
 import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import kotlin.native.ref.createCleaner
 
 actual class BufferedReader(
@@ -29,26 +33,52 @@ actual class BufferedReader(
 
     @Throws(KommandException::class)
     actual fun readLine(): String? = run {
-        when (type) {
-            ReaderType.STDOUT -> {
-                String.from(read_line_stdout(inner))
+        memScoped {
+            val size = alloc(0uL)
+            val result = when (type) {
+                ReaderType.STDOUT -> {
+                    read_line_stdout(inner, size.ptr)
+                }
+                ReaderType.STDERR -> {
+                    read_line_stderr(inner, size.ptr)
+                }
             }
-            ReaderType.STDERR -> {
-                String.from(read_line_stderr(inner))
+            if (size.value == 0uL) {
+                null
+            } else {
+                String.from(result)
             }
         }
     }
 
     @Throws(KommandException::class)
     actual fun readAll(): String? = run {
-        when (type) {
-            ReaderType.STDOUT -> {
-                String.from(read_all_stdout(inner))
+        memScoped {
+            val size = alloc(0uL)
+            val result = when (type) {
+                ReaderType.STDOUT -> {
+                    read_all_stdout(inner, size.ptr)
+                }
+                ReaderType.STDERR -> {
+                    read_all_stderr(inner, size.ptr)
+                }
             }
-            ReaderType.STDERR -> {
-                String.from(read_all_stderr(inner))
+            if (size.value == 0uL) {
+                null
+            } else {
+                String.from(result)
             }
         }
+    }
+
+    @Throws(KommandException::class)
+    actual fun lines(): Sequence<String> = sequence {
+        do {
+            val line = readLine()
+            if (line != null) {
+                yield(line)
+            }
+        } while (line != null)
     }
 }
 

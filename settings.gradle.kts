@@ -20,3 +20,8 @@ buildCache {
 }
 
 rootProject.name = "kommand"
+
+include(":kommand-examples")
+include(":kommand-examples:example1")
+include(":kommand-examples:example2")
+include(":kommand-examples:example3")

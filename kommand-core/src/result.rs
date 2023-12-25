@@ -1,5 +1,6 @@
 use crate::ffi_util::{into_cstring, into_void};
 use std::ffi::{c_char, c_int, c_void};
+use std::fmt::Display;
 use std::io;
 
 #[repr(C)]
@@ -77,8 +78,8 @@ impl From<io::Result<crate::process::Output>> for VoidResult {
     }
 }
 
-impl From<io::Result<String>> for VoidResult {
-    fn from(value: io::Result<String>) -> Self {
+impl<E: Display> From<Result<String, E>> for VoidResult {
+    fn from(value: Result<String, E>) -> Self {
         match value {
             Ok(string) => VoidResult {
                 ok: into_cstring(string) as *mut c_void,
