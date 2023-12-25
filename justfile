@@ -1,5 +1,10 @@
 #!/usr/bin/env just --justfile
 
+prepare:
+    brew install mingw-w64
+    brew tap messense/macos-cross-toolchains
+    brew install x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
+
 clean:
     ./gradlew clean
 

@@ -58,13 +58,25 @@ void drop_string(char *string);
 
 char *void_to_string(void *ptr);
 
-struct VoidResult read_line_stdout(const void *reader);
+/**
+ * # Safety
+ */
+struct VoidResult read_line_stdout(const void *reader, unsigned long long *size);
 
-struct VoidResult read_all_stdout(const void *reader);
+/**
+ * # Safety
+ */
+struct VoidResult read_all_stdout(const void *reader, unsigned long long *size);
 
-struct VoidResult read_line_stderr(const void *reader);
+/**
+ * # Safety
+ */
+struct VoidResult read_line_stderr(const void *reader, unsigned long long *size);
 
-struct VoidResult read_all_stderr(const void *reader);
+/**
+ * # Safety
+ */
+struct VoidResult read_all_stderr(const void *reader, unsigned long long *size);
 
 /**
  * # Safety

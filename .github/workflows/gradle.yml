@@ -9,7 +9,7 @@ name: Kommand Test
 
 on:
   push:
-    branches: [ "main", "dev", "v2.0" ]
+    branches: [ "main", "dev" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -77,4 +77,4 @@ jobs:
         working-directory: ./kommand-core
 
       - name: Test with Gradle Wrapper
-        run: gradle ${{ matrix.task }}
+        run: gradle ${{ matrix.task }} jvmTest

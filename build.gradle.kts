@@ -1,25 +1,25 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
     id("io.github.gradle-nexus.publish-plugin")
     `maven-publish`
-    application
     signing
 }
 
 group = "com.kgit2"
-version = "1.2.0"
-
-val ktorIO = "2.3.4"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
+}
+
+subprojects {
+    group = "com.kgit2"
+    version = "1.2.0"
 }
 
 kotlin {
@@ -45,7 +45,7 @@ kotlin {
         nativeTarget.apply {
             compilations.getByName("main") {
                 cinterops {
-                    val kommandCore by creating {
+                    create("kommandCore") {
                         defFile(project.file("src/nativeInterop/cinterop/${targetPlatform.archName}.def"))
                         packageName("kommand_core")
                     }
@@ -72,12 +72,12 @@ kotlin {
             }
         }
 
-        val commonMain by getting {
+        commonMain {
             dependencies {
-                implementation("io.ktor:ktor-io:2.3.4")
+                implementation("org.jetbrains.kotlinx:atomicfu:0.23.1")
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
@@ -86,12 +86,12 @@ kotlin {
 }
 
 tasks {
-    val wrapper by getting(Wrapper::class) {
+    withType(Wrapper::class) {
         distributionType = Wrapper.DistributionType.ALL
         gradleVersion = "8.2"
     }
 
-    val buildKommandEcho by creating {
+    create("buildKommandCore") {
         group = "kommand_core"
         doLast {
             buildKommandCore()
