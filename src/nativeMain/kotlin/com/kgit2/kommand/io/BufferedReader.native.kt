@@ -1,12 +1,13 @@
 package com.kgit2.kommand.io
 
 import com.kgit2.kommand.exception.KommandException
-import com.kgit2.kommand.wrapper.dropStderr
-import com.kgit2.kommand.wrapper.dropStdout
-import com.kgit2.kommand.wrapper.readAllStderr
-import com.kgit2.kommand.wrapper.readAllStdout
-import com.kgit2.kommand.wrapper.readLineStderr
-import com.kgit2.kommand.wrapper.readLineStdout
+import com.kgit2.kommand.from
+import kommand_core.drop_stderr
+import kommand_core.drop_stdout
+import kommand_core.read_all_stderr
+import kommand_core.read_all_stdout
+import kommand_core.read_line_stderr
+import kommand_core.read_line_stdout
 import kotlinx.cinterop.COpaquePointer
 import kotlin.native.ref.createCleaner
 
@@ -18,10 +19,10 @@ actual class BufferedReader(
     val cleaner = createCleaner(inner) { reader ->
         when (type) {
             ReaderType.STDOUT -> {
-                dropStdout(reader)
+                drop_stdout(reader)
             }
             ReaderType.STDERR -> {
-                dropStderr(reader)
+                drop_stderr(reader)
             }
         }
     }
@@ -30,10 +31,10 @@ actual class BufferedReader(
     actual fun readLine(): String? = run {
         when (type) {
             ReaderType.STDOUT -> {
-                readLineStdout(inner)
+                String.from(read_line_stdout(inner))
             }
             ReaderType.STDERR -> {
-                readLineStderr(inner)
+                String.from(read_line_stderr(inner))
             }
         }
     }
@@ -42,10 +43,10 @@ actual class BufferedReader(
     actual fun readAll(): String? = run {
         when (type) {
             ReaderType.STDOUT -> {
-                readAllStdout(inner)
+                String.from(read_all_stdout(inner))
             }
             ReaderType.STDERR -> {
-                readAllStderr(inner)
+                String.from(read_all_stderr(inner))
             }
         }
     }

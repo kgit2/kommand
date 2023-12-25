@@ -1,9 +1,10 @@
 package com.kgit2.kommand.io
 
 import com.kgit2.kommand.exception.KommandException
-import com.kgit2.kommand.wrapper.dropStdin
-import com.kgit2.kommand.wrapper.flushStdin
-import com.kgit2.kommand.wrapper.writeLineStdin
+import com.kgit2.kommand.unwrap
+import kommand_core.drop_stdin
+import kommand_core.flush_stdin
+import kommand_core.write_line_stdin
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.COpaquePointer
 import kotlin.native.ref.createCleaner
@@ -13,25 +14,25 @@ actual class BufferedWriter(
 ) {
     private val isClosed = atomic(false)
 
-    private val cleaner = createCleaner(isClosed to inner) { (freed, writer) ->
+    private val cleaner = createCleaner(isClosed to inner) { (freed, writter) ->
         if (freed.compareAndSet(expect = false, update = true)) {
-            dropStdin(writer)
+            drop_stdin(writter)
         }
     }
 
     @Throws(KommandException::class)
     actual fun writeLine(line: String) = run {
-        writeLineStdin(inner, line)
+        write_line_stdin(inner, line).unwrap()
     }
 
     @Throws(KommandException::class)
     actual fun flush() = run {
-        flushStdin(inner)
+        flush_stdin(inner).unwrap()
     }
 
     @Throws(KommandException::class)
     actual fun close() {
-        dropStdin(inner)
+        drop_stdin(inner)
         isClosed.getAndSet(true)
     }
 }

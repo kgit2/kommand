@@ -1,4 +1,4 @@
-package com.kgit2.kommand.wrapper
+package com.kgit2.kommand
 
 import com.kgit2.kommand.exception.ErrorType
 import com.kgit2.kommand.exception.KommandException
@@ -95,5 +95,6 @@ fun kommand_core.ErrorType.to(): ErrorType {
         kommand_core.ErrorType.Io -> ErrorType.IO
         kommand_core.ErrorType.Utf8 -> ErrorType.Utf8
         kommand_core.ErrorType.Unknown -> ErrorType.Unknown
+        else -> throw KommandException("Unknown error type: $this", ErrorType.Unknown)
     }
 }

@@ -1,17 +1,20 @@
 package com.kgit2.kommand.process
 
 import com.kgit2.kommand.exception.KommandException
+import com.kgit2.kommand.from
 import com.kgit2.kommand.io.BufferedReader
 import com.kgit2.kommand.io.BufferedWriter
 import com.kgit2.kommand.io.Output
-import com.kgit2.kommand.wrapper.bufferedStderrChild
-import com.kgit2.kommand.wrapper.bufferedStdinChild
-import com.kgit2.kommand.wrapper.bufferedStdoutChild
-import com.kgit2.kommand.wrapper.dropChild
-import com.kgit2.kommand.wrapper.killChild
-import com.kgit2.kommand.wrapper.waitChild
-import com.kgit2.kommand.wrapper.waitWithOutputChild
+import com.kgit2.kommand.io.ReaderType
+import com.kgit2.kommand.unwrap
+import kommand_core.buffered_stderr_child
+import kommand_core.buffered_stdin_child
+import kommand_core.buffered_stdout_child
+import kommand_core.drop_child
 import kommand_core.id_child
+import kommand_core.kill_child
+import kommand_core.wait_child
+import kommand_core.wait_with_output_child
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.cinterop.COpaquePointer
@@ -29,7 +32,7 @@ actual class Child(
 
     private val cleaner = createCleaner(isClosed to inner) { (freed, child) ->
         if (freed.compareAndSet(expect = false, update = true)) {
-            dropChild(child)
+            drop_child(child)
         }
     }
 
@@ -40,29 +43,29 @@ actual class Child(
     }
 
     actual fun bufferedStdin(): BufferedWriter? {
-        stdin.compareAndSet(null, bufferedStdinChild(inner))
+        stdin.compareAndSet(null, BufferedWriter(buffered_stdin_child(inner)))
         return stdin.value
     }
 
     actual fun bufferedStdout(): BufferedReader? {
-        stdout.compareAndSet(null, bufferedStdoutChild(inner))
+        stdout.compareAndSet(null, BufferedReader(buffered_stdout_child(inner), ReaderType.STDOUT))
         return stdout.value
     }
 
     actual fun bufferedStderr(): BufferedReader? {
-        stderr.compareAndSet(null, bufferedStderrChild(inner))
+        stderr.compareAndSet(null, BufferedReader(buffered_stderr_child(inner), ReaderType.STDERR))
         return stderr.value
     }
 
     @Throws(KommandException::class)
     actual fun kill() = run {
-        killChild(inner)
+        kill_child(inner).unwrap()
     }
 
     @Throws(KommandException::class)
     actual fun wait(): Int = run {
         stdin.getAndSet(null)?.close()
-        waitChild(inner)
+        Int.from(wait_child(inner))
     }
 
     @Throws(KommandException::class)
@@ -71,6 +74,6 @@ actual class Child(
         val inner = this.inner
         this.inner = null
         isClosed.getAndSet(true)
-        waitWithOutputChild(inner)
+        Output.from(wait_with_output_child(inner))
     }
 }

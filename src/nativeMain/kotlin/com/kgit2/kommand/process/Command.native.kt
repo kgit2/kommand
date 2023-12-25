@@ -1,22 +1,24 @@
 package com.kgit2.kommand.process
 
+import com.kgit2.kommand.asString
 import com.kgit2.kommand.exception.KommandException
+import com.kgit2.kommand.from
 import com.kgit2.kommand.io.Output
-import com.kgit2.kommand.wrapper.argCommand
-import com.kgit2.kommand.wrapper.currentDirCommand
-import com.kgit2.kommand.wrapper.debugCommand
-import com.kgit2.kommand.wrapper.displayCommand
-import com.kgit2.kommand.wrapper.dropCommand
-import com.kgit2.kommand.wrapper.envClearCommand
-import com.kgit2.kommand.wrapper.envCommand
-import com.kgit2.kommand.wrapper.newCommand
-import com.kgit2.kommand.wrapper.outputCommand
-import com.kgit2.kommand.wrapper.removeEnvCommand
-import com.kgit2.kommand.wrapper.spawnCommand
-import com.kgit2.kommand.wrapper.statusCommand
-import com.kgit2.kommand.wrapper.stderrCommand
-import com.kgit2.kommand.wrapper.stdinCommand
-import com.kgit2.kommand.wrapper.stdoutCommand
+import com.kgit2.kommand.to
+import kommand_core.arg_command
+import kommand_core.current_dir_command
+import kommand_core.display_command
+import kommand_core.drop_command
+import kommand_core.env_clear_command
+import kommand_core.env_command
+import kommand_core.new_command
+import kommand_core.output_command
+import kommand_core.remove_env_command
+import kommand_core.spawn_command
+import kommand_core.status_command
+import kommand_core.stderr_command
+import kommand_core.stdin_command
+import kommand_core.stdout_command
 import kotlinx.cinterop.COpaquePointer
 import kotlin.native.ref.createCleaner
 
@@ -24,86 +26,86 @@ actual class Command(
     actual val command: String,
     private val inner: COpaquePointer?,
 ) {
-    actual constructor(command: String) : this(command, newCommand(command))
+    actual constructor(command: String) : this(command, new_command(command))
 
     private val cleaner = createCleaner(inner) { command ->
-        dropCommand(command)
+        drop_command(command)
     }
 
     override fun toString(): String {
-        return displayCommand(inner) ?: "null"
+        return display_command(inner)?.asString() ?: "null"
     }
 
     actual fun debugString(): String {
-        return debugCommand(inner) ?: "null"
+        return display_command(inner)?.asString() ?: "null"
     }
 
     actual fun arg(arg: String): Command {
-        argCommand(inner, arg)
+        arg_command(inner, arg)
         return this
     }
 
     actual fun args(args: List<String>): Command {
         for (arg in args) {
-            argCommand(inner, arg)
+            arg_command(inner, arg)
         }
         return this
     }
 
     actual fun env(key: String, value: String): Command {
-        envCommand(inner, key, value)
+        env_command(inner, key, value)
         return this
     }
 
     actual fun envs(envs: Map<String, String>): Command {
         for ((key, value) in envs) {
-            envCommand(inner, key, value)
+            env_command(inner, key, value)
         }
         return this
     }
 
     actual fun removeEnv(key: String): Command {
-        removeEnvCommand(inner, key)
+        remove_env_command(inner, key)
         return this
     }
 
     actual fun envClear(): Command {
-        envClearCommand(inner)
+        env_clear_command(inner)
         return this
     }
 
     actual fun cwd(dir: String): Command {
-        currentDirCommand(inner, dir)
+        current_dir_command(inner, dir)
         return this
     }
 
     actual fun stdin(stdio: Stdio): Command {
-        stdinCommand(inner, stdio)
+        stdin_command(inner, stdio.to())
         return this
     }
 
     actual fun stdout(stdio: Stdio): Command {
-        stdoutCommand(inner, stdio)
+        stdout_command(inner, stdio.to())
         return this
     }
 
     actual fun stderr(stdio: Stdio): Command {
-        stderrCommand(inner, stdio)
+        stderr_command(inner, stdio.to())
         return this
     }
 
     @Throws(KommandException::class)
     actual fun spawn(): Child = run {
-        spawnCommand(inner)
+        Child.from(spawn_command(inner))
     }
 
     @Throws(KommandException::class)
     actual fun output(): Output = run {
-        outputCommand(inner)
+        Output.from(output_command(inner))
     }
 
     @Throws(KommandException::class)
     actual fun status(): Int = run {
-        statusCommand(inner)
+        Int.from(status_command(inner))
     }
 }
