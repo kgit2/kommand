@@ -77,4 +77,4 @@ jobs:
         working-directory: ./kommand-core
 
       - name: Test with Gradle Wrapper
-        run: gradle ${{ matrix.task }}
+        run: gradle ${{ matrix.task }} jvmTest
