@@ -21,13 +21,13 @@ lazy_static! {
         .unwrap()
         .canonicalize()
         .unwrap();
-    static ref MAIN_DIR: PathBuf = ROOT_DIR.join("src/macosX64Main/kotlin/com/kgit2/wrapper");
+    static ref MAIN_DIR: PathBuf = ROOT_DIR.join("src/macosX64Main/kotlin/com/kgit2/kommand/wrapper");
     #[rustfmt::skip]
     static ref CLUSTER_DIRS: HashMap<String, PathBuf> = HashMap::from([
-        ("macosArm64".to_string(), ROOT_DIR.join("src/macosArm64Main/kotlin/com/kgit2/wrapper")),
-        ("linuxX64".to_string(), ROOT_DIR.join("src/linuxX64Main/kotlin/com/kgit2/wrapper")),
-        ("linuxArm64".to_string(), ROOT_DIR.join("src/linuxArm64Main/kotlin/com/kgit2/wrapper")),
-        ("mingwX64".to_string(), ROOT_DIR.join("src/mingwX64Main/kotlin/com/kgit2/wrapper")),
+        ("macosArm64".to_string(), ROOT_DIR.join("src/macosArm64Main/kotlin/com/kgit2/kommand/wrapper")),
+        ("linuxX64".to_string(), ROOT_DIR.join("src/linuxX64Main/kotlin/com/kgit2/kommand/wrapper")),
+        ("linuxArm64".to_string(), ROOT_DIR.join("src/linuxArm64Main/kotlin/com/kgit2/kommand/wrapper")),
+        ("mingwX64".to_string(), ROOT_DIR.join("src/mingwX64Main/kotlin/com/kgit2/kommand/wrapper")),
     ]);
 }
 
