@@ -73,11 +73,14 @@ closeSonatype:
 releaseSonatype:
     ./gradlew findSonatypeStagingRepository releaseSonatypeStagingRepository
 
-autoPublish: build publishToSonatype closeSonatype releaseSonatype
-
 leaks:
     ./gradlew :cleanMacosX64Test :macosX64Test
     leaks -atExit -- build/bin/macosX64/debugTest/test.kexe
+
+macosArm64Leaks:
+    leaks -atExit -- build/bin/macosArm64/debugTest/test.kexe
+
+autoPublish: build publishToSonatype macosArm64Leaks closeSonatype releaseSonatype
 
 teamcity:
     #-v <path to logs directory>:/opt/teamcity/logs
