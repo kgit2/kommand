@@ -1,4 +1,5 @@
 [![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
+[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml)
 
 ![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
@@ -82,11 +83,11 @@ https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/k
 https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/kommand-examples/example3/src/commonMain/kotlin/com/kgit2/kommand/Main.kt#L1-L12
 
 
-## Build
+## Build by yourself
 
 ### 1. Dependencies
 
-- rust toolchain - 1.69.0 (https://rustup.rs)
+- rust toolchain - <= 1.69.0 (https://rustup.rs) (recommend)
   - cross (install with `cargo install cross`)
   - just (install with `cargo install just`)
 - cross-compile toolchain
@@ -125,9 +126,9 @@ just all
 ./gradlew build
 ```
 
-### 5. Multiplatform Test
+### 5. cross-platform test
 
-> Only linux support multiplatform test.
+> Only linux support cross-platform test.
 
 * install docker
 
