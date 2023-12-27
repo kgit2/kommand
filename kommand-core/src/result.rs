@@ -95,6 +95,25 @@ impl<E: Display> From<Result<String, E>> for VoidResult {
     }
 }
 
+impl<E: Display> From<Result<Option<String>, E>> for VoidResult {
+    fn from(value: Result<Option<String>, E>) -> Self {
+        match value {
+            Ok(string) => VoidResult {
+                ok: string.map_or(std::ptr::null_mut(), |string| {
+                    into_cstring(string) as *mut c_void
+                }),
+                err: std::ptr::null_mut() as *mut c_char,
+                error_type: ErrorType::None,
+            },
+            Err(e) => VoidResult {
+                ok: std::ptr::null_mut(),
+                err: into_cstring(e.to_string()),
+                error_type: ErrorType::Io,
+            },
+        }
+    }
+}
+
 impl From<io::Result<std::process::ExitStatus>> for IntResult {
     fn from(value: io::Result<std::process::ExitStatus>) -> Self {
         match value {
