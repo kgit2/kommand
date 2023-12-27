@@ -20,9 +20,9 @@ linuxX64Test:
     ./gradlew :cleanLinuxX64Test :linuxX64Test :jvmTest
 
 linuxArm64Test:
-    ./gradlew :cleanLinuxArm64TestBinaries :linuxArm64TestBinaries :jvmTest
+    ./gradlew :cleanLinuxArm64TestBinaries :linuxArm64TestBinaries
 
-windowsX64Test:
+mingwX64Test:
     ./gradlew :cleanMingwX64Test :mingwX64Test :jvmTest
 
 linuxX64TestDocker: linuxX64Test
