@@ -78,6 +78,7 @@ leaks:
     leaks -atExit -- build/bin/macosX64/debugTest/test.kexe
 
 macosArm64Leaks:
+    ./gradlew :cleanMacosArm64Test :macosArm64Test
     leaks -atExit -- build/bin/macosArm64/debugTest/test.kexe
 
 autoPublish: build publishToSonatype macosArm64Leaks closeSonatype releaseSonatype
