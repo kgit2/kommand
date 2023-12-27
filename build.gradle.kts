@@ -1,12 +1,12 @@
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.apache.tools.ant.taskdefs.AbstractJarSignerTask
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
-    id("io.github.gradle-nexus.publish-plugin")
     `maven-publish`
     signing
+    id("io.github.gradle-nexus.publish-plugin")
 }
 
 group = "com.kgit2"
@@ -91,12 +91,6 @@ tasks {
         gradleVersion = "8.2"
     }
 
-    forEach {
-        if (it.group == "verification" || it.path.contains("Test")) {
-            // it.dependsOn(buildKommandEcho)
-        }
-    }
-
     withType(Test::class) {
         testLogging {
             showStandardStreams = true
@@ -118,22 +112,6 @@ val ossrhPassword = runCatching {
 }.getOrNull()
 
 if (ossrhUsername != null && ossrhPassword != null) {
-    val dokkaOutputDir = layout.buildDirectory.dir("dokka")
-
-    tasks.getByName<DokkaTask>("dokkaHtml") {
-        outputDirectory.set(file(dokkaOutputDir))
-    }
-
-    val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
-        delete(dokkaOutputDir)
-    }
-
-    val javadocJar = tasks.register<Jar>("javadocJar") {
-        dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
-        archiveClassifier.set("javadoc")
-        from(dokkaOutputDir)
-    }
-
     nexusPublishing {
         repositories {
             sonatype {
@@ -158,7 +136,18 @@ if (ossrhUsername != null && ossrhPassword != null) {
         }
         publications {
             withType<MavenPublication> {
-                artifact(javadocJar.get())
+                val dokkaJar = project.tasks.register("${name}DokkaJar", Jar::class) {
+                    group = JavaBasePlugin.DOCUMENTATION_GROUP
+                    description = "Assembles Kotlin docs with Dokka into a Javadoc jar"
+                    archiveClassifier.set("javadoc")
+                    from(tasks.dokkaHtml)
+
+                    // Each archive name should be distinct, to avoid implicit dependency issues.
+                    // We use the same format as the sources Jar tasks.
+                    // https://youtrack.jetbrains.com/issue/KT-46466
+                    archiveBaseName.set("${archiveBaseName.get()}-${name}")
+                }
+                artifact(dokkaJar)
                 pom {
                     name.set("kommand")
                     description.set("A simple process library for Kotlin Multiplatform")
