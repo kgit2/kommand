@@ -60,6 +60,9 @@ macosArm64Test:
 windowsX64Test:
     ./gradlew mingwX64Test
 
+build:
+    cd kommand-core && just all
+
 publishToSonatype:
     ./gradlew publishToSonatype
 
@@ -69,7 +72,7 @@ closeSonatype:
 releaseSonatype:
     ./gradlew findSonatypeStagingRepository releaseSonatypeStagingRepository
 
-autoPublish: publishToSonatype closeSonatype releaseSonatype
+autoPublish: build publishToSonatype closeSonatype releaseSonatype
 
 leaks:
     ./gradlew :cleanMacosX64Test :macosX64Test

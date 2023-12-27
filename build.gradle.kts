@@ -91,13 +91,6 @@ tasks {
         gradleVersion = "8.2"
     }
 
-    create("buildKommandCore") {
-        group = "kommand_core"
-        doLast {
-            buildKommandCore()
-        }
-    }
-
     forEach {
         if (it.group == "verification" || it.path.contains("Test")) {
             // it.dependsOn(buildKommandEcho)
@@ -109,27 +102,6 @@ tasks {
             showStandardStreams = true
         }
     }
-
-    // withType(KotlinNativeCompile::class) {
-    //     compilerOptions {
-    //         freeCompilerArgs.add("-Xexpect-actual-classes")
-    //     }
-    // }
-
-    // withType(KotlinNativeLink::class) {
-    //     doFirst {
-    //         println(this.name)
-    //         val targetPlatform = when (this.name) {
-    //             "linkDebugTestMacosX64" -> Platform.MACOS_X64
-    //             "linkDebugTestMacosArm64" -> Platform.MACOS_ARM64
-    //             "linkDebugTestLinuxX64" -> Platform.LINUX_X64
-    //             "linkDebugTestLinuxArm64" -> Platform.LINUX_ARM64
-    //             "linkDebugTestMingwX64" -> Platform.MINGW_X64
-    //             else -> throw GradleException("Unknown platform")
-    //         }
-    //         buildKommandCore(this.outputs.files.asPath, targetPlatform)
-    //     }
-    // }
 }
 
 val ossrhUrl: String = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
@@ -233,15 +205,6 @@ enum class Platform(
     ;
 }
 
-val currentPlatform: Platform = when {
-    DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MACOS_X64
-    DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isArm64 -> Platform.MACOS_ARM64
-    DefaultNativePlatform.getCurrentOperatingSystem().isLinux && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.LINUX_X64
-    DefaultNativePlatform.getCurrentOperatingSystem().isLinux && DefaultNativePlatform.getCurrentArchitecture().isArm64 -> Platform.LINUX_ARM64
-    DefaultNativePlatform.getCurrentOperatingSystem().isWindows && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MINGW_X64
-    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-}
-
 val platforms: List<Platform> = listOf(
     Platform.MACOS_X64,
     Platform.MACOS_ARM64,
@@ -249,19 +212,3 @@ val platforms: List<Platform> = listOf(
     Platform.LINUX_ARM64,
     Platform.MINGW_X64,
 )
-
-fun buildKommandCore(targetPath: String? = null, targetPlatform: Platform? = null) {
-    ProcessBuilder("just", "all")
-        .directory(file("kommand-core"))
-        .inheritIO()
-        .start()
-        .waitFor()
-    if (targetPath != null && targetPlatform != null) {
-        var kommandEchoName = "kommand-echo"
-        if (targetPlatform == Platform.MINGW_X64) {
-            kommandEchoName += ".exe"
-        }
-        file("kommand-core/target/${targetPlatform.archName}/release/${kommandEchoName}")
-            .copyTo(file(targetPath).resolve(kommandEchoName), true)
-    }
-}
