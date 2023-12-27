@@ -1,32 +1,51 @@
+[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
+
 ![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
 # Kommand
+
 一个可以将外部命令跑在子进程的库，用于Kotlin Native/JVM
 
-# 架构示意
+# v2.0.0
 
-![architecture](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/architecture_2.0.png)
+Rust 是一门兼顾性能和工程性的优秀语言。
 
-# 源泉
-- 深受rust-std `Command`启发。
-- 基于ktor-io，可以使用管道处理进程间通信(IPC)。
-- kotlin多平台1.7.20，使用新的内存管理器。
+在 1.x 版本中，我们使用以下 API 来提供创建子进程的功能
 
-- ### Native for macOS/Linux
+- `fork` of [POSIX api]
+- `CreateChildProcess` of [win32 api]
+- `java.lang.ProcessBuilder` of JVM
 
-    使用POSIX api的系统调用
+在 2.0 版本中，我们使用 Rust 标准库来提供创建子进程的功能。
 
-- ### Native for Mingw
+- `std::process::Command` of Rust
+- `java.lang.ProcessBuilder` of JVM
 
-    使用Win32 api的系统调用
+它将带来
 
-- ### JVM
+- 更统一的 API
+- 更易用的 API
+- 性能依旧优秀
+- 更易于维护
+- 代码结构更清晰
 
-    基于 `java.lang.ProcessBuilder`
+# 支持的平台
 
-# Usage
+- x86_64-apple-darwin
+- aarch64-apple-darwin
+- x86_64-unknown-linux-gnu
+- aarch64-unknown-linux-gnu
+- x86_64-pc-windows-gnu (mingw-w64)
+- jvm
 
-## Dependency
+# 依赖于
+
+- Rust Standard Library 1.69.0
+- Kotlin Multiplatform 1.9.21
+
+# 用法
+
+## 依赖
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
 
@@ -40,57 +59,103 @@ repositories {
 // ……
 
 dependencies {
-    implementation("com.kgit2:kommand:$lastVersion")
+    // should replace with the latest version
+    implementation("com.kgit2:kommand:2.x")
 }
 
 ```
 
-## Quick Start
+## 快速上手
 
-### Inherit Standard I/O
+### 继承标准 I/O
 
-```kotlin
-Command("ping")
-    .arg("-c")
-    .args("5", "localhost")
-    .spawn()
-    .wait()
+https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/kommand-examples/example1/src/commonMain/kotlin/com/kgit2/kommand/Main.kt#L1-L12
+
+
+### 管道 I/O
+
+https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/kommand-examples/example2/src/commonMain/kotlin/com/kgit2/kommand/Main.kt#L1-L15
+
+
+### 屏蔽 I/O
+
+https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/kommand-examples/example3/src/commonMain/kotlin/com/kgit2/kommand/Main.kt#L1-L12
+
+
+## 自行编译
+
+### 1. 依赖
+
+- rust toolchain - <= 1.69.0 (https://rustup.rs) (建议)
+  - cross (install with `cargo install cross`)
+  - just (install with `cargo install just`)
+- 交叉编译工具链
+  - x86_64-apple-darwin
+  - aarch64-apple-darwin
+  - x86_64-unknown-linux-gnu
+  - aarch64-unknown-linux-gnu
+  - x86_64-pc-windows-gnu (mingw-w64)
+- docker (可选)
+
+强烈推荐在 macOS 编译所有平台。
+
+Kotlin Multiplatform 在 macOS 有更好的支持
+
+> 如果你使用 macOS , 你可以用下述命令安装工具链
+> ```bash
+> just prepare
+> ```
+> 否则, 你需要自行安装工具链
+
+### 2. 克隆仓库
+
+```bash
+git clone https://github.com/kgit2/kommand.git
+```
+### 3. 编译 kommand-core
+
+```bash
+cd kommand-core
+just all
 ```
 
-### Piped I/O
+### 4. 编译 kommand
 
-```kotlin
-val child = Command("ping")
-    .args("-c", "5", "localhost")
-    .stdout(Stdio.Pipe)
-    .spawn()
-val stdoutReader: com.kgit2.io.Reader? = child.getChildStdout()
-val lines: Sequence<String> = stdoutReader?.lines()
-lines.forEach { 
-    println(it)
-}
+```bash
+./gradlew build
 ```
 
-### Null I/O
+### 5. 跨平台测试
 
-```kotlin
-Command("gradle")
-    .arg("build")
-    .stdout(Stdio.Null)
-    .spawn()
-    .wait()
+> 仅 linux 平台支持跨平台测试.
+
+* install docker
+
+[Install Docker Engine](https://docs.docker.com/engine/install/)
+
+* 运行测试
+
+```bash
+# for x86_64
+just linuxX64Test
+# for aarch64
+just linuxArm64Test
 ```
 
-## 主要贡献者
+## Maintainers
 
 [@BppleMan](https://github.com/BppleMan).
 
-[@XJMiada](https://github.com/XJMiada).(图片原创)
+[@XJMiada](https://github.com/XJMiada).(Original Picture)
 
-## 许可证
+## License
 
 [Apache2.0](LICENSE) © BppleMan
 
-## 感谢
+## Credits
 
 - [![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://jb.gg/OpenSourceSupport)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=kgit2/kommand&type=Date&theme=dark)](https://star-history.com/#kgit2/kommand&Date)

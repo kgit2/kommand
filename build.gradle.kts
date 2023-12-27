@@ -1,28 +1,31 @@
+import org.apache.tools.ant.taskdefs.AbstractJarSignerTask
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
-    id("io.github.gradle-nexus.publish-plugin")
     `maven-publish`
-    application
     signing
+    id("io.github.gradle-nexus.publish-plugin")
 }
 
 group = "com.kgit2"
-version = "1.2.0"
-
-val ktorIO = "2.3.4"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
 }
 
+subprojects {
+    group = "com.kgit2"
+    version = "1.2.0"
+}
+
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11"
+            kotlinOptions.jvmTarget = "17"
         }
         withJava()
         testRuns["test"].executionTask.configure {
@@ -31,100 +34,67 @@ kotlin {
     }
 
     val nativeTargets = listOf(
-        macosArm64(),
-        macosX64(),
-        linuxX64(),
-        linuxArm64(),
-        mingwX64(),
+        macosX64() to Platform.MACOS_X64,
+        macosArm64() to Platform.MACOS_ARM64,
+        linuxX64() to Platform.LINUX_X64,
+        linuxArm64() to Platform.LINUX_ARM64,
+        mingwX64() to Platform.MINGW_X64,
     )
+
+    nativeTargets.forEach { (nativeTarget, targetPlatform) ->
+        nativeTarget.apply {
+            compilations.getByName("main") {
+                cinterops {
+                    create("kommandCore") {
+                        defFile(project.file("src/nativeInterop/cinterop/${targetPlatform.archName}.def"))
+                        packageName("kommand_core")
+                    }
+                }
+            }
+        }
+    }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         // add opt-in
         all {
             languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
             languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
-            // languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-        }
+            languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
+            languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
 
-        val commonMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-io:2.3.4")
+            languageSettings {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
             }
         }
-        val commonTest by getting {
+
+        commonMain {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:atomicfu:0.23.1")
+            }
+        }
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
-
-        val jvmMain by getting
-        val jvmTest by getting
-
-        val posixMain by creating {
-            dependsOn(commonMain)
-        }
-        val posixTest by creating {
-            dependsOn(commonTest)
-            dependencies {
-                implementation("io.ktor:ktor-server-core:2.3.4")
-                implementation("io.ktor:ktor-server-cio:2.3.4")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-            }
-        }
-
-        val unixLikeMain by creating {
-            dependsOn(posixMain)
-        }
-        val unixLikeTest by creating {
-            dependsOn(posixTest)
-        }
-        val macosArm64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val macosArm64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val macosX64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val macosX64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val linuxX64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val linuxX64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val linuxArm64Main by getting {
-            dependsOn(unixLikeMain)
-        }
-        val linuxArm64Test by getting {
-            dependsOn(unixLikeTest)
-        }
-        val mingwX64Main by getting {
-            dependsOn(posixMain)
-        }
-        val mingwX64Test by getting
     }
 }
 
-val subCommandInstallDist = tasks.findByPath(":sub_command:installDist")
-
-val buildEko = tasks.create("buildEko") {
-    group = "build"
-    doLast {
-        ProcessBuilder("bash", "-c", "cargo build --release")
-            .directory(file("eko"))
-            .inheritIO()
-            .start()
-            .waitFor()
+tasks {
+    withType(Wrapper::class) {
+        distributionType = Wrapper.DistributionType.ALL
+        gradleVersion = "8.2"
     }
-}
 
-tasks.forEach {
-    if (it.group == "verification" || it.path.contains("Test")) {
-        it.dependsOn(buildEko)
+    withType(Test::class) {
+        testLogging {
+            showStandardStreams = true
+        }
     }
 }
 
@@ -142,26 +112,6 @@ val ossrhPassword = runCatching {
 }.getOrNull()
 
 if (ossrhUsername != null && ossrhPassword != null) {
-    val keyId = project.findProperty("signing.keyId") as String?
-    val keyPass = project.findProperty("signing.password") as String?
-    val keyRingFile = project.findProperty("signing.secretKeyRingFile") as String?
-
-    val dokkaOutputDir = "$buildDir/dokka"
-
-    tasks.getByName<DokkaTask>("dokkaHtml") {
-        outputDirectory.set(file(dokkaOutputDir))
-    }
-
-    val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
-        delete(dokkaOutputDir)
-    }
-
-    val javadocJar = tasks.register<Jar>("javadocJar") {
-        dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
-        archiveClassifier.set("javadoc")
-        from(dokkaOutputDir)
-    }
-
     nexusPublishing {
         repositories {
             sonatype {
@@ -186,7 +136,18 @@ if (ossrhUsername != null && ossrhPassword != null) {
         }
         publications {
             withType<MavenPublication> {
-                artifact(javadocJar.get())
+                val dokkaJar = project.tasks.register("${name}DokkaJar", Jar::class) {
+                    group = JavaBasePlugin.DOCUMENTATION_GROUP
+                    description = "Assembles Kotlin docs with Dokka into a Javadoc jar"
+                    archiveClassifier.set("javadoc")
+                    from(tasks.dokkaHtml)
+
+                    // Each archive name should be distinct, to avoid implicit dependency issues.
+                    // We use the same format as the sources Jar tasks.
+                    // https://youtrack.jetbrains.com/issue/KT-46466
+                    archiveBaseName.set("${archiveBaseName.get()}-${name}")
+                }
+                artifact(dokkaJar)
                 pom {
                     name.set("kommand")
                     description.set("A simple process library for Kotlin Multiplatform")
@@ -194,7 +155,7 @@ if (ossrhUsername != null && ossrhPassword != null) {
                     licenses {
                         license {
                             name.set("The Apache License, Version 2.0")
-                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                         }
                     }
                     scm {
@@ -214,6 +175,29 @@ if (ossrhUsername != null && ossrhPassword != null) {
     }
 
     signing {
+        // will default find the
+        // - signing.keyId
+        // - signing.password
+        // - signing.secretKeyRingFile
         sign(publishing.publications)
     }
 }
+
+enum class Platform(
+    val archName: String
+) {
+    MACOS_X64("x86_64-apple-darwin"),
+    MACOS_ARM64("aarch64-apple-darwin"),
+    LINUX_X64("x86_64-unknown-linux-gnu"),
+    LINUX_ARM64("aarch64-unknown-linux-gnu"),
+    MINGW_X64("x86_64-pc-windows-gnu"),
+    ;
+}
+
+val platforms: List<Platform> = listOf(
+    Platform.MACOS_X64,
+    Platform.MACOS_ARM64,
+    Platform.LINUX_X64,
+    Platform.LINUX_ARM64,
+    Platform.MINGW_X64,
+)
