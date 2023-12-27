@@ -96,7 +96,7 @@ jobs:
             task: macosArm64Test
           - os: [ self-hosted, macOS, ARM64, aarch64-unknown-linux-gnu ]
             target: aarch64-unknown-linux-gnu
-            task: linuxArm64Test
+            task: linuxArm64TestDocker
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
