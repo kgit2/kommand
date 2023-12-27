@@ -1,6 +1,3 @@
-import org.apache.tools.ant.taskdefs.AbstractJarSignerTask
-import org.jetbrains.dokka.gradle.DokkaTask
-
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
@@ -10,7 +7,7 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "2.0.0"
+version = "2.0.1"
 
 repositories {
     mavenCentral()

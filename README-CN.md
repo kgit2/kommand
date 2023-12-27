@@ -1,4 +1,6 @@
-[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
+[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml/badge.svg?branch=main)](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml)
+[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg?branch=test)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
 
 ![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
@@ -47,8 +49,6 @@ Rust 是一门兼顾性能和工程性的优秀语言。
 
 ## 依赖
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
-
 `build.gradle.kts`:
 
 ```kotlin
@@ -87,14 +87,14 @@ https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/k
 ### 1. 依赖
 
 - rust toolchain - <= 1.69.0 (https://rustup.rs) (建议)
-  - cross (install with `cargo install cross`)
-  - just (install with `cargo install just`)
+    - cross (install with `cargo install cross`)
+    - just (install with `cargo install just`)
 - 交叉编译工具链
-  - x86_64-apple-darwin
-  - aarch64-apple-darwin
-  - x86_64-unknown-linux-gnu
-  - aarch64-unknown-linux-gnu
-  - x86_64-pc-windows-gnu (mingw-w64)
+    - x86_64-apple-darwin
+    - aarch64-apple-darwin
+    - x86_64-unknown-linux-gnu
+    - aarch64-unknown-linux-gnu
+    - x86_64-pc-windows-gnu (mingw-w64)
 - docker (可选)
 
 强烈推荐在 macOS 编译所有平台。
