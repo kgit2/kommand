@@ -81,7 +81,7 @@ macosArm64Leaks:
     ./gradlew :cleanMacosArm64Test :macosArm64Test
     leaks -atExit -- build/bin/macosArm64/debugTest/test.kexe
 
-autoPublish: build publishToSonatype macosArm64Leaks closeSonatype releaseSonatype
+autoPublish: macosArm64Leaks build publishToSonatype closeSonatype releaseSonatype
 
 teamcity:
     #-v <path to logs directory>:/opt/teamcity/logs
