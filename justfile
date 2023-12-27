@@ -22,9 +22,9 @@ linuxX64Test:
         -e HTTPS_PROXY=host.docker.internal:6152 \
         -e ALL_PROXY=host.docker.internal:6153 \
         --platform linux/amd64 \
-        -m 1g \
-        --cpus=8 \
-        azul/zulu-openjdk:17-latest \
+        -m 256m \
+        --cpus=1 \
+        ubuntu \
         bash
     sleep 1
     -docker exec linuxX64Test build/bin/linuxX64/debugTest/test.kexe
@@ -41,9 +41,9 @@ linuxArm64Test:
         -e HTTPS_PROXY=host.docker.internal:6152 \
         -e ALL_PROXY=host.docker.internal:6153 \
         --platform linux/arm64 \
-        -m 1g \
-        --cpus=8 \
-        azul/zulu-openjdk:17-latest \
+        -m 256m \
+        --cpus=1 \
+        ubuntu \
         bash
     sleep 1
     -docker exec linuxArm64Test build/bin/linuxArm64/debugTest/test.kexe
@@ -54,12 +54,8 @@ macosX64Test:
     leaks -atExit -- build/bin/macosX64/debugTest/test.kexe
 
 macosArm64Test:
-    just link-test macosArm64
-    ssh mini-lan "mkdir -p ~/test-sandbox"
-    scp ./build/bin/macosArm64/debugTest/test.kexe mini-lan:~/test-sandbox/test.kexe
-    ssh mini-lan "mkdir -p ~/test-sandbox/kommand-core/target/aarch64-apple-darwin/release"
-    scp ./kommand-core/target/aarch64-apple-darwin/release/kommand-echo mini-lan:~/test-sandbox/kommand-core/target/aarch64-apple-darwin/release
-    ssh mini-lan "cd test-sandbox; ulimit -n 10240; ./test.kexe;"
+    ./gradlew :cleanMacosArm64Test :macosArm64Test
+    leaks -atExit -- build/bin/macosArm64/debugTest/test.kexe
 
 windowsX64Test:
     ./gradlew mingwX64Test
