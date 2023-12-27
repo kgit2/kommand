@@ -2,6 +2,9 @@
 [![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg?branch=test)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
 
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/B0B2SNCVJ)
+
 ![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
 # Kommand
