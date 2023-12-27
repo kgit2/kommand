@@ -1,6 +1,3 @@
-import org.apache.tools.ant.taskdefs.AbstractJarSignerTask
-import org.jetbrains.dokka.gradle.DokkaTask
-
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")

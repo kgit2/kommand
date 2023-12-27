@@ -8,11 +8,24 @@ prepare:
 clean:
     ./gradlew clean
 
-link-test target:
-    ./gradlew {{target}}TestBinaries
+macosX64Test:
+    ./gradlew :cleanMacosX64Test :macosX64Test :jvmTest
+    leaks -atExit -- build/bin/macosX64/debugTest/test.kexe
+
+macosArm64Test:
+    ./gradlew :cleanMacosArm64Test :macosArm64Test :jvmTest
+    leaks -atExit -- build/bin/macosArm64/debugTest/test.kexe
 
 linuxX64Test:
-    just link-test linuxX64
+    ./gradlew :cleanLinuxX64Test :linuxX64Test :jvmTest
+
+linuxArm64Test:
+    ./gradlew :cleanLinuxArm64Test :linuxArm64Test :jvmTest
+
+windowsX64Test:
+    ./gradlew :cleanMingwX64Test :mingwX64Test :jvmTest
+
+linuxX64TestDocker: linuxX64Test
     # ignore the error exit code
     -docker run -itd --name linuxX64Test \
         -v ./build/bin/linuxX64:/kommand/build/bin/linuxX64 \
@@ -30,8 +43,7 @@ linuxX64Test:
     -docker exec linuxX64Test build/bin/linuxX64/debugTest/test.kexe
     docker rm -f linuxX64Test
 
-linuxArm64Test:
-    just link-test linuxArm64
+linuxArm64TestDocker: linuxArm64Test
     # ignore the error exit code
     -docker run -itd --name linuxArm64Test \
         -v ./build/bin/linuxArm64:/kommand/build/bin/linuxArm64 \
@@ -48,17 +60,6 @@ linuxArm64Test:
     sleep 1
     -docker exec linuxArm64Test build/bin/linuxArm64/debugTest/test.kexe
     docker rm -f linuxArm64Test
-
-macosX64Test:
-    ./gradlew :cleanMacosX64Test :macosX64Test
-    leaks -atExit -- build/bin/macosX64/debugTest/test.kexe
-
-macosArm64Test:
-    ./gradlew :cleanMacosArm64Test :macosArm64Test
-    leaks -atExit -- build/bin/macosArm64/debugTest/test.kexe
-
-windowsX64Test:
-    ./gradlew mingwX64Test
 
 build:
     cd kommand-core && just all
