@@ -25,7 +25,11 @@ pub unsafe extern "C" fn read_line_stdout(
         .read_line(&mut line)
         .map(|len| {
             unsafe { *size = len as c_ulonglong };
-            line.trim_end_matches('\n').to_string()
+            if len == 0 {
+                None
+            } else {
+                Some(line.trim_end_matches('\n').to_string())
+            }
         })
         .into()
 }
@@ -42,7 +46,11 @@ pub unsafe extern "C" fn read_all_stdout(
         .read_to_string(&mut line)
         .map(|len| {
             unsafe { *size = len as c_ulonglong };
-            line
+            if len == 0 {
+                None
+            } else {
+                Some(line)
+            }
         })
         .into()
 }
@@ -59,7 +67,11 @@ pub unsafe extern "C" fn read_line_stderr(
         .read_line(&mut line)
         .map(|len| {
             unsafe { *size = len as c_ulonglong };
-            line.trim_end_matches('\n').to_string()
+            if len == 0 {
+                None
+            } else {
+                Some(line.trim_end_matches('\n').to_string())
+            }
         })
         .into()
 }
@@ -76,7 +88,11 @@ pub unsafe extern "C" fn read_all_stderr(
         .read_to_string(&mut line)
         .map(|len| {
             unsafe { *size = len as c_ulonglong };
-            line
+            if len == 0 {
+                None
+            } else {
+                Some(line)
+            }
         })
         .into()
 }

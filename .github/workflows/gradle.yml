@@ -9,7 +9,7 @@ name: Kommand Test
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: [ "main", "test" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -18,37 +18,32 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  test-x64:
     strategy:
       fail-fast: false
       matrix:
         os:
           - macos-12
-          - [self-hosted, macOS, ARM64, aarch64-apple-darwin]
           - ubuntu-22.04
-          - [self-hosted, macOS, ARM64, aarch64-unknown-linux-gnu]
           - windows-latest
         include:
           - os: macos-12
             target: x86_64-apple-darwin
             task: macosX64Test
-          - os: [self-hosted, macOS, ARM64, aarch64-apple-darwin]
-            target: aarch64-apple-darwin
-            task: macosArm64Test
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             task: linuxX64Test
             gcc: true
-          - os: [self-hosted, macOS, ARM64, aarch64-unknown-linux-gnu]
-            target: aarch64-unknown-linux-gnu
-            task: linuxArm64Test
-            cross: true
           - os: windows-latest
             target: x86_64-pc-windows-gnu
             task: mingwX64Test
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - if: ${{ matrix.gcc }}
+        name: Set up GCC
+        uses: Dup4/actions-setup-gcc@v1
 
       - name: Set up Cargo
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -64,20 +59,8 @@ jobs:
           architecture: ${{ matrix.arch }}
           cache: 'gradle'
 
-      - if: ${{ matrix.gcc }}
-        name: Set up GCC
-        uses: Dup4/actions-setup-gcc@v1
-
       - name: Set up just
         uses: extractions/setup-just@v1
-
-      - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: '8.2'
-
-      - name: Test Gradle availability
-        run: gradle build --dry-run
 
       - if: ${{ !matrix.gcc }}
         name: Build kommand-core
@@ -89,10 +72,38 @@ jobs:
         run: just workflow ${{ matrix.target }}
         working-directory: ./kommand-core
 
-      - if: ${{ !matrix.cross }}
-        name: Test with Gradle
-        run: gradle ${{ matrix.task }} jvmTest
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: '8.2'
 
-      - if: ${{ matrix.cross }}
-        name: Test with Docker
+      - name: Test Gradle availability
+        run: gradle build --dry-run
+
+      - name: Running Test
+        run: just ${{ matrix.task }}
+
+  test-arm64:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - [ self-hosted, macOS, ARM64, aarch64-apple-darwin ]
+          - [ self-hosted, macOS, ARM64, aarch64-unknown-linux-gnu ]
+        include:
+          - os: [ self-hosted, macOS, ARM64, aarch64-apple-darwin ]
+            target: aarch64-apple-darwin
+            task: macosArm64Test
+          - os: [ self-hosted, macOS, ARM64, aarch64-unknown-linux-gnu ]
+            target: aarch64-unknown-linux-gnu
+            task: linuxArm64Test
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build kommand-core
+        run: just ${{ matrix.target }}
+        working-directory: ./kommand-core
+
+      - name: Running Test
         run: just ${{ matrix.task }}

@@ -1,5 +1,6 @@
-[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
-[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml)
+[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml/badge.svg?branch=main)](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml)
+[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg?branch=test)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
 
 ![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
@@ -47,8 +48,6 @@ It will bring
 # Usage
 
 ## Dependency
-
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
 
 `build.gradle.kts`:
 
