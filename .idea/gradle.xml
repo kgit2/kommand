@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/kommand-examples/example1" />
             <option value="$PROJECT_DIR$/kommand-examples/example2" />
             <option value="$PROJECT_DIR$/kommand-examples/example3" />
+            <option value="$PROJECT_DIR$/kommand-examples/timeout" />
           </set>
         </option>
       </GradleProjectSettings>
