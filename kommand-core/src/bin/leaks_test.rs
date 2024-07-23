@@ -5,6 +5,7 @@ use kommand_core::io::{drop_stdout, read_line_stdout};
 use kommand_core::process::{buffered_stdout_child, Stdio};
 use kommand_core::process::{drop_child, wait_child};
 use kommand_core::process::{drop_command, new_command, spawn_command, stdout_command};
+use kommand_core::result::ErrorType;
 
 fn main() {
     unsafe {
@@ -31,7 +32,10 @@ fn main() {
                 let line = if !result.ok.is_null() {
                     into_string(result.ok as *mut c_char)
                 } else {
-                    panic!("{}", into_string(result.err))
+                    match result.error_type {
+                        ErrorType::None => String::new(),
+                        _ => panic!("{}", into_string(result.err)),
+                    }
                 };
                 println!("[{i}] line {}", line);
                 if line.is_empty() {
