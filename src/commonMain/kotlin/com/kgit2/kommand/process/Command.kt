@@ -12,9 +12,13 @@ expect class Command(command: String) {
 
     fun args(args: List<String>): Command
 
+    fun args(vararg args: String): Command
+
     fun env(key: String, value: String): Command
 
     fun envs(envs: Map<String, String>): Command
+
+    fun envs(vararg envs: Pair<String, String>): Command
 
     fun removeEnv(key: String): Command
 
