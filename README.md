@@ -1,6 +1,9 @@
-[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml/badge.svg?branch=main)](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml)
+[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml)
 [![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg?branch=test)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
+
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/B0B2SNCVJ)
 
 ![logo](https://raw.githubusercontent.com/floater-git/Artist/main/kommand/logo.png)
 
@@ -81,6 +84,15 @@ https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/k
 
 https://github.com/kgit2/kommand/blob/af7c721f774550d0d5f72758f101074c12fae134/kommand-examples/example3/src/commonMain/kotlin/com/kgit2/kommand/Main.kt#L1-L12
 
+### Timeout Detection
+
+https://github.com/kgit2/kommand/blob/7367c60db7b3475be0de17474dbcec3d518894ba/kommand-examples/timeout/src/appleMain/kotlin/com/kgit2/kommand/Main.kt#L1-L60
+
+Full example check [kommand-examples/timeout](kommand-examples/timeout).
+
+Dependency:
+
+- `required` [kotlinx-coroutines](https://github.com/Kotlin/kotlinx.coroutines)
 
 ## Build by yourself
 

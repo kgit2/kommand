@@ -52,12 +52,26 @@ actual class Command(
         return this
     }
 
+    actual fun args(vararg args: String): Command {
+        for (arg in args) {
+            arg_command(inner, arg)
+        }
+        return this
+    }
+
     actual fun env(key: String, value: String): Command {
         env_command(inner, key, value)
         return this
     }
 
     actual fun envs(envs: Map<String, String>): Command {
+        for ((key, value) in envs) {
+            env_command(inner, key, value)
+        }
+        return this
+    }
+
+    actual fun envs(vararg envs: Pair<String, String>): Command {
         for ((key, value) in envs) {
             env_command(inner, key, value)
         }

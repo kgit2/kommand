@@ -6,7 +6,7 @@ prepare:
     brew install x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
 
 leaks:
-    cargo build
+    cargo build --package kommand-core --package kommand-echo
     leaks -atExit -- target/debug/leaks_test
 
 bench:

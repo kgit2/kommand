@@ -30,12 +30,22 @@ actual class Command(
         return this
     }
 
+    actual fun args(vararg args: String): Command {
+        builder.command().addAll(args)
+        return this
+    }
+
     actual fun env(key: String, value: String): Command {
         builder.environment()[key] = value
         return this
     }
 
     actual fun envs(envs: Map<String, String>): Command {
+        builder.environment().putAll(envs)
+        return this
+    }
+
+    actual fun envs(vararg envs: Pair<String, String>): Command {
         builder.environment().putAll(envs)
         return this
     }
