@@ -26,43 +26,33 @@ mingwX64Test:
     ./gradlew :cleanMingwX64Test :mingwX64Test :jvmTest
 
 linuxX64TestDocker: linuxX64Test
-    # ignore the error exit code
-    -docker run -itd --name linuxX64Test \
-        -v ./build/bin/linuxX64:/kommand/build/bin/linuxX64 \
-        -v ./kommand-core/target/x86_64-unknown-linux-gnu/release/kommand-echo:/kommand/kommand-core/target/x86_64-unknown-linux-gnu/release/kommand-echo \
+    # if need ignore the error exit code, then prefix -
+    # don't remove the working directory
+    docker run --rm --name linuxX64Test \
+        -v .:/kommand \
         -w /kommand \
-        -e HTTP_PROXY=host.docker.internal:6152 \
-        -e HTTPS_PROXY=host.docker.internal:6152 \
-        -e ALL_PROXY=host.docker.internal:6153 \
         --platform linux/amd64 \
         -m 256m \
         --cpus=1 \
-        ubuntu \
-        bash
-    sleep 1
-    -docker exec linuxX64Test build/bin/linuxX64/debugTest/test.kexe
-    docker rm -f linuxX64Test
+        ubuntu:22.04 \
+        /kommand/build/bin/linuxX64/debugTest/test.kexe
 
 linuxArm64TestDocker: linuxArm64Test
-    # ignore the error exit code
-    -docker run -itd --name linuxArm64Test \
-        -v ./build/bin/linuxArm64:/kommand/build/bin/linuxArm64 \
-        -v ./kommand-core/target/aarch64-unknown-linux-gnu/release/kommand-echo:/kommand/kommand-core/target/aarch64-unknown-linux-gnu/release/kommand-echo \
+    # if need ignore the error exit code, then prefix -
+    # don't remove the working directory
+    docker run --rm --name linuxArm64Test \
+        -v .:/kommand \
         -w /kommand \
-        -e HTTP_PROXY=host.docker.internal:6152 \
-        -e HTTPS_PROXY=host.docker.internal:6152 \
-        -e ALL_PROXY=host.docker.internal:6153 \
         --platform linux/arm64 \
         -m 256m \
         --cpus=1 \
-        ubuntu \
-        bash
-    sleep 1
-    -docker exec linuxArm64Test build/bin/linuxArm64/debugTest/test.kexe
-    docker rm -f linuxArm64Test
+        ubuntu:22.04 \
+        /kommand/build/bin/linuxArm64/debugTest/test.kexe
 
-build:
+buildKommandCore:
     cd kommand-core && just all
+
+# for publish
 
 publishToSonatype:
     ./gradlew publishToSonatype
@@ -73,19 +63,26 @@ closeSonatype:
 releaseSonatype:
     ./gradlew findSonatypeStagingRepository releaseSonatypeStagingRepository
 
-leaks:
-    ./gradlew :cleanMacosX64Test :macosX64Test
-    leaks -atExit -- build/bin/macosX64/debugTest/test.kexe
+autoPublish: macosX64Test buildKommandCore publishToSonatype closeSonatype releaseSonatype
 
-macosArm64Leaks:
-    ./gradlew :cleanMacosArm64Test :macosArm64Test
-    leaks -atExit -- build/bin/macosArm64/debugTest/test.kexe
+ciPublish SONATYPE_USERNAME SONATYPE_PASSWORD GPG_KEY_ID GPG_PASSPHRASE: macosX64Test buildKommandCore
+    ./gradlew publishToSonatype \
+        closeSonatypeStagingRepository \
+        releaseSonatypeStagingRepository \
+        -PossrhUsername="{{ SONATYPE_USERNAME }}" \
+        -PossrhPassword="{{ SONATYPE_PASSWORD }}" \
+        -Psigning.keyId="{{ GPG_KEY_ID }}" \
+        -Psigning.password="{{ GPG_PASSPHRASE }}" \
+        -Psigning.secretKeyRingFile="$HOME/.gradle/secret.gpg"
 
-autoPublish: macosArm64Leaks build publishToSonatype closeSonatype releaseSonatype
+importKey:
+    gpg --batch --import $HOME/.gradle/secret.gpg
 
-teamcity:
-    #-v <path to logs directory>:/opt/teamcity/logs
-    docker run --name teamcity-server-instance \
-    -v ./:/data/teamcity_server/kommand \
-    -p 8111:8111 \
-    jetbrains/teamcity-server
+generateFRP GPG_KEY_ID:
+    @gpg --list-keys --with-colons --keyid-format LONG --fingerprint {{GPG_KEY_ID}} | awk -F: '$1 == "fpr" || $1 == "fp2" {print $10}' | head -n 1
+
+deleteKey GPG_KEY_ID:
+    #!/bin/sh
+    GPG_FINGERPRINT=$(just generateFRP {{GPG_KEY_ID}})
+    gpg --batch --yes --delete-secret-keys $GPG_FINGERPRINT
+    gpg --batch --yes --delete-keys $GPG_FINGERPRINT

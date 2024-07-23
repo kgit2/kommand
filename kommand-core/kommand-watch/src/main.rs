@@ -7,13 +7,13 @@ use std::time::Duration;
 
 use color_eyre::eyre::Context;
 use color_eyre::owo_colors::OwoColorize;
-use color_eyre::{install, Result};
 use lazy_static::lazy_static;
 use notify_debouncer_mini::notify::RecursiveMode;
 use notify_debouncer_mini::{new_debouncer, DebounceEventResult};
 use walkdir::WalkDir;
 
 lazy_static! {
+    // $CARGO_MANIFEST_DIR/../.. => kommand
     static ref ROOT_DIR: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -32,8 +32,8 @@ lazy_static! {
 }
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<()> {
-    install()?;
+async fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
     #[cfg(windows)]
     ansi_term::enable_ansi_support().unwrap();
 

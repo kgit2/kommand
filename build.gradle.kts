@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.kgit2"
-version = "2.1.0"
+version = "2.1.2"
 
 repositories {
     mavenCentral()
@@ -82,6 +82,8 @@ kotlin {
     }
 }
 
+val testString: String by project
+
 tasks {
     withType(Wrapper::class) {
         distributionType = Wrapper.DistributionType.ALL
@@ -91,6 +93,12 @@ tasks {
     withType(Test::class) {
         testLogging {
             showStandardStreams = true
+        }
+    }
+
+    val testArg by creating {
+        doLast {
+            println(testString)
         }
     }
 }

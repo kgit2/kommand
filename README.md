@@ -11,7 +11,7 @@
 
 Kotlin Native library for create sub-process and redirect their I/O.
 
-# v2.0.0
+# v2.1.1
 
 Rust is an excellent language that takes into account both performance and engineering.
 
