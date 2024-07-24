@@ -1,5 +1,5 @@
-[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/kgit2/kommand/actions/workflows/gradle-publish.yml)
-[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/gradle.yml/badge.svg?branch=test)](https://github.com/kgit2/kommand/actions/workflows/gradle.yml)
+[![Kommand Publish](https://github.com/kgit2/kommand/actions/workflows/kommand%20publish.yml/badge.svg?branch=main)](https://github.com/kgit2/kommand/actions/workflows/kommand%20publish.yml)
+[![Kommand Test](https://github.com/kgit2/kommand/actions/workflows/kommand%20test.yml/badge.svg?branch=main)](https://github.com/kgit2/kommand/actions/workflows/kommand%20test.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kgit2/kommand)
 
 
