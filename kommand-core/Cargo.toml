@@ -5,7 +5,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "2.1.2"
 edition = "2021"
 authors = ["BppleMan"]
 
@@ -22,7 +22,7 @@ crate-type = ["rlib", "staticlib"]
 [dependencies]
 
 [build-dependencies]
-cbindgen = "0.25.0"
+cbindgen = "0.26.0"
 
 [package.metadata.cargo-xbuild]
 memcpy = true

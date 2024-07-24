@@ -72,9 +72,9 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 
 [[package]]
 name = "cbindgen"
-version = "0.25.0"
+version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "faeaa693e5a727975a79211b8f35c0cb09b031fdb6eaa4a788bc6713d01488ca"
+checksum = "da6bc11b07529f16944307272d5bd9b22530bc7d05751717c9d416586cedab49"
 dependencies = [
  "clap",
  "heck",
@@ -345,14 +345,14 @@ checksum = "b1a46d1a171d865aa5f83f92695765caa047a9b4cbae2cbf37dbd613a793fd4c"
 
 [[package]]
 name = "kommand-core"
-version = "0.1.0"
+version = "2.1.2"
 dependencies = [
  "cbindgen",
 ]
 
 [[package]]
 name = "kommand-echo"
-version = "0.1.0"
+version = "2.1.2"
 dependencies = [
  "ansi_term",
  "colored",
@@ -361,7 +361,7 @@ dependencies = [
 
 [[package]]
 name = "kommand-watch"
-version = "0.1.0"
+version = "2.1.2"
 dependencies = [
  "ansi_term",
  "color-eyre",

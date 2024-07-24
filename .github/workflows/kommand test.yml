@@ -1,0 +1,105 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Kommand Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kommand-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - macos
+          - linux
+          - windows
+        arch:
+          - x64
+          - aarch64
+        exclude:
+          - platform: windows
+            arch: aarch64
+        include:
+          - platform: macos
+            arch: x64
+            os: macos-12
+            cargo_target: x86_64-apple-darwin
+            task: macosX64Test
+            jdk_arch: x64
+          - platform: macos
+            arch: aarch64
+            os: macos-14
+            cargo_target: aarch64-apple-darwin
+            task: macosArm64Test
+            jdk_arch: aarch64
+          - platform: linux
+            arch: x64
+            os: ubuntu-22.04
+            cargo_target: x86_64-unknown-linux-gnu
+            task: linuxX64Test
+            jdk_arch: x64
+          - platform: linux
+            arch: aarch64
+            os: ubuntu-22.04
+            cargo_target: aarch64-unknown-linux-gnu
+            task: linuxArm64TestDocker
+            jdk_arch: x64
+          - platform: windows
+            arch: x64
+            os: windows-latest
+            cargo_target: x86_64-pc-windows-gnu
+            task: mingwX64Test
+            jdk_arch: x64
+
+    name: ${{ matrix.os }} - ${{ matrix.cargo_target }} - ${{ matrix.task }}
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Cargo
+        uses: actions-rust-lang/setup-rust-toolchain@v1.9.0
+        with:
+          toolchain: 1.69.0
+          target: ${{ matrix.cargo_target }}
+
+      - name: Set up just
+        run: cargo install just --version 1.15.0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4.0.0
+        with:
+          java-version: '17'
+          distribution: 'microsoft'
+          architecture: ${{ matrix.jdk_arch }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - if: ${{ matrix.platform == 'linux' && matrix.arch == 'aarch64' }}
+        name: Set up cross-gcc
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - if: ${{ matrix.platform == 'linux' && matrix.arch == 'aarch64' }}
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build kommand-core
+        run: just ${{ matrix.cargo_target }}
+        working-directory: ./kommand-core
+
+      - name: Running Test
+        run: just ${{ matrix.task }}
