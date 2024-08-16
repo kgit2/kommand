@@ -10,7 +10,7 @@ plugins {
 }
 
 val sharedGroup = "com.kgit2"
-val sharedVersion = "2.2.0"
+val sharedVersion = "2.2.1"
 
 group = sharedGroup
 version = sharedVersion
@@ -64,10 +64,10 @@ kotlin {
     sourceSets {
         // add opt-in
         all {
-            languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
+            // languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
             languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
             languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
-            languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
+            // languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
 
             languageSettings {
@@ -123,8 +123,8 @@ if (ossrhUsername != null && ossrhPassword != null) {
     nexusPublishing {
         repositories {
             sonatype {
-                nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-                snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+                nexusUrl.set(uri(releasesRepoUrl))
+                snapshotRepositoryUrl.set(uri(snapshotsRepoUrl))
                 username.set(ossrhUsername)
                 password.set(ossrhPassword)
             }

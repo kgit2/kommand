@@ -16,7 +16,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.toKString
 
-inline fun CPointer<ByteVar>.asString(): String {
+fun CPointer<ByteVar>.asString(): String {
     val result = this.toKString()
     drop_string(this)
     return result
