@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
@@ -6,8 +9,11 @@ plugins {
     id("io.github.gradle-nexus.publish-plugin")
 }
 
-group = "com.kgit2"
-version = "2.1.2"
+val sharedGroup = "com.kgit2"
+val sharedVersion = "2.2.0"
+
+group = sharedGroup
+version = sharedVersion
 
 repositories {
     mavenCentral()
@@ -15,15 +21,17 @@ repositories {
 }
 
 subprojects {
-    group = "com.kgit2"
-    version = "1.2.0"
+    group = sharedGroup
+    version = sharedVersion
 }
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "17"
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
+
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -63,6 +71,7 @@ kotlin {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
 
             languageSettings {
+                @OptIn(ExperimentalKotlinGradlePluginApi::class)
                 compilerOptions {
                     freeCompilerArgs.add("-Xexpect-actual-classes")
                 }
@@ -93,12 +102,6 @@ tasks {
     withType(Test::class) {
         testLogging {
             showStandardStreams = true
-        }
-    }
-
-    val testArg by creating {
-        doLast {
-            println(testString)
         }
     }
 }

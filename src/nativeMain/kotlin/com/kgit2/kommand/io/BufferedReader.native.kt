@@ -20,7 +20,7 @@ actual class BufferedReader(
     private val type: ReaderType,
 ) {
 
-    val cleaner = createCleaner(inner) { reader ->
+    val cleaner = createCleaner(inner to type) { (reader, type) ->
         when (type) {
             ReaderType.STDOUT -> {
                 drop_stdout(reader)
