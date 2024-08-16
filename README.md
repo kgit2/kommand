@@ -11,7 +11,7 @@
 
 Kotlin Native library for create sub-process and redirect their I/O.
 
-# v2.1.2
+# v2.2.0
 
 Rust is an excellent language that takes into account both performance and engineering.
 
@@ -21,7 +21,7 @@ In version 1.x, we use the following API to provide the function of creating chi
 - `CreateChildProcess` of [win32 api]
 - `java.lang.ProcessBuilder` of JVM
 
-In version 2.0, we use the Rust standard library to provide the function of creating child processes.
+In version 2.x, we use the Rust standard library to provide the function of creating child processes.
 
 - `std::process::Command` of Rust
 - `java.lang.ProcessBuilder` of JVM
@@ -45,8 +45,8 @@ It will bring
 
 # Dependent
 
-- Rust Standard Library 1.69.0
-- Kotlin Multiplatform 1.9.21
+- Rust Standard Library 1.69.0 (No support for later versions)
+- Kotlin Multiplatform 2.0.10
 
 # Usage
 
@@ -99,7 +99,6 @@ Dependency:
 ### 1. Dependencies
 
 - rust toolchain - <= 1.69.0 (https://rustup.rs) (recommend)
-  - cross (install with `cargo install cross`)
   - just (install with `cargo install just`)
 - cross-compile toolchain
   - x86_64-apple-darwin
