@@ -98,7 +98,7 @@ Dependency:
 
 ### 1. Dependencies
 
-- rust toolchain - >= 1.83.0 (https://rustup.rs)
+- rust toolchain - 1.83.0 (https://rustup.rs)
   - just (install with `cargo install just`)
 - cross-compile toolchain
   - x86_64-apple-darwin

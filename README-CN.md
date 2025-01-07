@@ -8,7 +8,7 @@
 
 一个可以将外部命令跑在子进程的库，用于Kotlin Native/JVM
 
-# v2.1.2
+# v2.3.0
 
 Rust 是一门兼顾性能和工程性的优秀语言。
 
@@ -18,7 +18,7 @@ Rust 是一门兼顾性能和工程性的优秀语言。
 - `CreateChildProcess` of [win32 api]
 - `java.lang.ProcessBuilder` of JVM
 
-在 2.0 版本中，我们使用 Rust 标准库来提供创建子进程的功能。
+在 2.x 版本中，我们使用 Rust 标准库来提供创建子进程的功能。
 
 - `std::process::Command` of Rust
 - `java.lang.ProcessBuilder` of JVM
@@ -42,8 +42,8 @@ Rust 是一门兼顾性能和工程性的优秀语言。
 
 # 依赖于
 
-- Rust Standard Library 1.69.0
-- Kotlin Multiplatform 1.9.21
+- Rust Standard Library 1.83.0
+- Kotlin Multiplatform 2.1.0
 
 # 用法
 
@@ -95,8 +95,7 @@ https://github.com/kgit2/kommand/blob/7367c60db7b3475be0de17474dbcec3d518894ba/k
 
 ### 1. 依赖
 
-- rust toolchain - <= 1.69.0 (https://rustup.rs) (建议)
-    - cross (install with `cargo install cross`)
+- rust toolchain - 1.83.0 (https://rustup.rs)
     - just (install with `cargo install just`)
 - 交叉编译工具链
     - x86_64-apple-darwin
