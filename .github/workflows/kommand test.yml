@@ -35,7 +35,7 @@ jobs:
         include:
           - platform: macos
             arch: x64
-            os: macos-12
+            os: macos-14
             cargo_target: x86_64-apple-darwin
             task: macosX64Test
             jdk_arch: x64
@@ -73,11 +73,11 @@ jobs:
       - name: Set up Cargo
         uses: actions-rust-lang/setup-rust-toolchain@v1.9.0
         with:
-          toolchain: 1.69.0
+          toolchain: 1.83.0
           target: ${{ matrix.cargo_target }}
 
       - name: Set up just
-        run: cargo install just --version 1.15.0
+        run: cargo install just
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4.0.0
