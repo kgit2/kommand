@@ -11,7 +11,7 @@
 
 Kotlin Native library for create sub-process and redirect their I/O.
 
-# v2.2.0
+# v2.3.0
 
 Rust is an excellent language that takes into account both performance and engineering.
 
@@ -45,8 +45,8 @@ It will bring
 
 # Dependent
 
-- Rust Standard Library 1.69.0 (No support for later versions)
-- Kotlin Multiplatform 2.0.10
+- Rust Standard Library 1.83.0
+- Kotlin Multiplatform 2.1.0
 
 # Usage
 
@@ -98,7 +98,7 @@ Dependency:
 
 ### 1. Dependencies
 
-- rust toolchain - <= 1.69.0 (https://rustup.rs) (recommend)
+- rust toolchain - >= 1.83.0 (https://rustup.rs)
   - just (install with `cargo install just`)
 - cross-compile toolchain
   - x86_64-apple-darwin
