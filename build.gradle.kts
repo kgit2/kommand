@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -10,7 +9,7 @@ plugins {
 }
 
 val sharedGroup = "com.kgit2"
-val sharedVersion = "2.2.1"
+val sharedVersion = "2.3.0"
 
 group = sharedGroup
 version = sharedVersion
@@ -27,7 +26,6 @@ subprojects {
 
 kotlin {
     jvm {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -62,30 +60,47 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     sourceSets {
-        // add opt-in
-        all {
-            // languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
-            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
-            languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
-            // languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+        val sourceSetsNeedOptIn = setOf(
+            nativeMain,
+            appleMain,
+            macosMain,
+            macosX64Main,
+            macosArm64Main,
+            linuxMain,
+            linuxX64Main,
+            linuxArm64Main,
+            mingwMain,
+            mingwX64Main,
+        )
 
-            languageSettings {
-                @OptIn(ExperimentalKotlinGradlePluginApi::class)
-                compilerOptions {
-                    freeCompilerArgs.add("-Xexpect-actual-classes")
-                }
+        sourceSetsNeedOptIn.forEach { sourceSet ->
+            sourceSet.languageSettings {
+                optIn("kotlinx.cinterop.ExperimentalForeignApi")
+                optIn("kotlin.experimental.ExperimentalNativeApi")
             }
         }
 
         commonMain {
+            languageSettings {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+
             dependencies {
                 implementation("org.jetbrains.kotlinx:atomicfu:0.23.1")
             }
         }
+
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
+            }
+        }
+
+        nativeMain {
+            languageSettings {
+                optIn("kotlinx.cinterop.ExperimentalForeignApi")
             }
         }
     }
@@ -192,7 +207,7 @@ if (ossrhUsername != null && ossrhPassword != null) {
 }
 
 enum class Platform(
-    val archName: String
+    val archName: String,
 ) {
     MACOS_X64("x86_64-apple-darwin"),
     MACOS_ARM64("aarch64-apple-darwin"),

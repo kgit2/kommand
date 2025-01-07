@@ -5,7 +5,7 @@ members = [
 ]
 
 [workspace.package]
-version = "2.1.2"
+version = "2.3.0"
 edition = "2021"
 authors = ["BppleMan"]
 
@@ -23,8 +23,3 @@ crate-type = ["rlib", "staticlib"]
 
 [build-dependencies]
 cbindgen = "0.26.0"
-
-[package.metadata.cargo-xbuild]
-memcpy = true
-sysroot_path = "/Users/bppleman/.rustup/toolchains/stable-x86_64-apple-darwin/lib/rustlib/x86_64-pc-windows-gnu:/Users/bppleman/.konan/dependencies/msys2-mingw-w64-x86_64-2/x86_64-w64-mingw32"
-panic_immediate_abort = false

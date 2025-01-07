@@ -1,4 +1,5 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val currentPlatform: Platform = when {
     DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MACOS_X64
@@ -20,8 +21,8 @@ repositories {
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "17"
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
         withJava()
         testRuns["test"].executionTask.configure {
@@ -48,15 +49,6 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     sourceSets {
-        // add opt-in
-        all {
-            languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
-            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
-            languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
-            languageSettings.optIn("kotlin.native.runtime.NativeRuntimeApi")
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-        }
-
         commonMain {
             dependencies {
                 implementation(rootProject)
