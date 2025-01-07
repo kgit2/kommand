@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.*
 
 plugins {
     kotlin("multiplatform")
@@ -117,6 +118,23 @@ tasks {
     withType(Test::class) {
         testLogging {
             showStandardStreams = true
+        }
+    }
+
+    if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("windows")) {
+        val replaceLLD by creating {
+            group = "mingw-w64"
+            doLast {
+                System.getenv("USERPROFILE")?.let { userProfile ->
+                    val targetFile = File("$userProfile\\.konan\\dependencies\\lld-12.0.1-windows-x64\\ld.lld.exe")
+                    File("$userProfile\\.konan\\dependencies\\llvm-16.0.0-x86_64-windows-essentials-56\\bin\\ld.lld.exe")
+                        .copyTo(targetFile, true)
+                }
+            }
+        }
+
+        getByName("compileKotlinMingwX64") {
+            dependsOn(replaceLLD)
         }
     }
 }
