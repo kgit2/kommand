@@ -97,6 +97,14 @@ jobs:
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      - if: ${{ matrix.platform == 'windows' && matrix.arch == 'x64' }}
+        name: Set up lld
+        shell: cmd
+        run: |
+          echo "Replace lld with llvm-16 bundled lld"
+          del C:\Users\runneradmin\.konan\dependencies\lld-12.0.1-windows-x64\ld.lld.exe
+          copy C:\Users\runneradmin\.konan\dependencies\dependencies\llvm-16.0.0-x86_64-windows-essentials-56\bin\ld.lld.exe C:\Users\runneradmin\.konan\dependencies\lld-12.0.1-windows-x64\ld.lld.exe
+
       - name: Build kommand-core
         run: just ${{ matrix.cargo_target }}
         working-directory: ./kommand-core
