@@ -44,6 +44,9 @@ jobs:
       - name: Set up cross-compiler
         run: just prepare
 
+      - name: Check gnu toolchain
+        run: just check
+
       - name: Build kommand-core
         run: just all
         working-directory: kommand-core

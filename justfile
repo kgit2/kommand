@@ -5,6 +5,14 @@ prepare:
     brew tap messense/macos-cross-toolchains
     brew install x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
 
+check:
+    brew --prefix mingw-w64
+    brew --prefix x86_64-unknown-linux-gnu
+    brew --prefix aarch64-unknown-linux-gnu
+    where x86_64-unknown-linux-gnu-gcc
+    where aarch64-unknown-linux-gnu-gcc
+    echo $PATH
+
 clean:
     ./gradlew clean
 
