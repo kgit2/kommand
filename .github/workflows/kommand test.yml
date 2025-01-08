@@ -35,7 +35,7 @@ jobs:
         include:
           - platform: macos
             arch: x64
-            os: macos-14
+            os: macos-13
             cargo_target: x86_64-apple-darwin
             task: macosX64Test
             jdk_arch: x64
