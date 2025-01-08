@@ -47,26 +47,26 @@ jobs:
       - name: Check gnu toolchain
         run: just check
 
-      - name: Build kommand-core
-        run: just all
-        working-directory: kommand-core
-
-      - name: Import GPG key
-        run: |
-          mkdir -p $HOME/.gradle
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode > $HOME/.gradle/secret.gpg
-          just importKey
-
-      - name: Publish to sonatype
-        run: |
-          just ciPublish \
-            ${{ secrets.SONATYPE_USERNAME }} \
-            ${{ secrets.SONATYPE_PASSWORD }} \
-            ${{ secrets.GPG_KEY_ID }} \
-            ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Clean up GPG key
-        if: always()
-        run: |
-          rm -f $HOME/.gradle/secret.gpg
-          just deleteKey ${{ secrets.GPG_KEY_ID }}
+#      - name: Build kommand-core
+#        run: just all
+#        working-directory: kommand-core
+#
+#      - name: Import GPG key
+#        run: |
+#          mkdir -p $HOME/.gradle
+#          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode > $HOME/.gradle/secret.gpg
+#          just importKey
+#
+#      - name: Publish to sonatype
+#        run: |
+#          just ciPublish \
+#            ${{ secrets.SONATYPE_USERNAME }} \
+#            ${{ secrets.SONATYPE_PASSWORD }} \
+#            ${{ secrets.GPG_KEY_ID }} \
+#            ${{ secrets.GPG_PASSPHRASE }}
+#
+#      - name: Clean up GPG key
+#        if: always()
+#        run: |
+#          rm -f $HOME/.gradle/secret.gpg
+#          just deleteKey ${{ secrets.GPG_KEY_ID }}
