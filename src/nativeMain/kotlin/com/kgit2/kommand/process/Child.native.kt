@@ -2,19 +2,14 @@ package com.kgit2.kommand.process
 
 import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.from
+import com.kgit2.kommand.fromOptional
 import com.kgit2.kommand.io.BufferedReader
 import com.kgit2.kommand.io.BufferedWriter
 import com.kgit2.kommand.io.Output
 import com.kgit2.kommand.io.ReaderType
 import com.kgit2.kommand.unwrap
-import kommand_core.buffered_stderr_child
-import kommand_core.buffered_stdin_child
-import kommand_core.buffered_stdout_child
-import kommand_core.drop_child
-import kommand_core.id_child
-import kommand_core.kill_child
-import kommand_core.wait_child
-import kommand_core.wait_with_output_child
+import kommand_core.*
+import kommand_core.try_wait_child
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.cinterop.COpaquePointer
@@ -23,7 +18,7 @@ import kotlin.native.ref.createCleaner
 
 actual class Child(
     private var inner: COpaquePointer?
-): SynchronizedObject() {
+) : SynchronizedObject() {
     private var stdin: AtomicReference<BufferedWriter?> = AtomicReference(null)
     private var stdout: AtomicReference<BufferedReader?> = AtomicReference(null)
     private var stderr: AtomicReference<BufferedReader?> = AtomicReference(null)
@@ -66,6 +61,14 @@ actual class Child(
     actual fun wait(): Int = run {
         stdin.getAndSet(null)?.close()
         Int.from(wait_child(inner))
+    }
+
+    @Throws(KommandException::class)
+    actual fun tryWait(): Int? {
+        return when (Int.fromOptional(try_wait_child(inner))) {
+            null -> null
+            else -> wait()
+        }
     }
 
     @Throws(KommandException::class)

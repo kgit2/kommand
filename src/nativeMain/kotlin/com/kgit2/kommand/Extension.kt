@@ -9,12 +9,7 @@ import kommand_core.drop_output
 import kommand_core.drop_string
 import kommand_core.into_output
 import kommand_core.void_to_string
-import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.CValue
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.pointed
-import kotlinx.cinterop.toKString
+import kotlinx.cinterop.*
 
 fun CPointer<ByteVar>.asString(): String {
     val result = this.toKString()
@@ -50,6 +45,15 @@ fun Output.Companion.from(result: CValue<kommand_core.VoidResult>): Output = mem
         )
         drop_output(output)
         newOutput
+    }
+}
+
+fun Int.Companion.fromOptional(result: CValue<kommand_core.IntResult>): Int? = memScoped {
+    return@memScoped if (result.ptr.pointed.ok == -2) {
+        // Application still running
+        null
+    } else {
+        Int.Companion.from(result)
     }
 }
 
