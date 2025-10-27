@@ -5,6 +5,7 @@ import com.kgit2.kommand.exception.KommandException
 import com.kgit2.kommand.io.BufferedReader
 import com.kgit2.kommand.io.BufferedWriter
 import com.kgit2.kommand.io.Output
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 actual class Child(
@@ -43,6 +44,14 @@ actual class Child(
     actual fun wait(): Int {
         stdin.get()?.close()
         return process.waitFor()
+    }
+
+    @Throws(KommandException::class)
+    actual fun tryWait(): Int? {
+        return when (process.waitFor(0, TimeUnit.MICROSECONDS)) {
+            true -> wait()
+            false -> return null
+        }
     }
 
     @Throws(KommandException::class)

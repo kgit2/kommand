@@ -4,6 +4,7 @@ import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class ChildTest {
     @Test
@@ -12,6 +13,7 @@ class ChildTest {
             .arg("interval")
             .stdout(Stdio.Pipe)
         val child = command.spawn()
+        assertNull(child.tryWait())
         val output = child.waitWithOutput()
         val expect = listOf("0", "1", "2", "3", "4").joinToString("\n") + "\n"
         assertEquals(expect, output.stdout)
@@ -29,6 +31,7 @@ class ChildTest {
             .arg("interval")
             .stdout(Stdio.Pipe)
         val child = command.spawn()
+        assertNull(child.tryWait())
         // var line = child.bufferedStdout()?.readLine()
         // var expect = 0
         // while (!line.isNullOrEmpty()) {
@@ -39,7 +42,25 @@ class ChildTest {
         child.bufferedStdout()?.lines()?.withIndex()?.forEach {
             assertEquals(it.index.toString(), it.value)
         }
-        child.wait()
+        val returnCode = child.wait()
+        assertEquals(returnCode, child.tryWait())
+        assertEquals(returnCode, child.wait())
+    }
+
+    @Test
+    fun spawnTryWait() {
+        val command = Command(platformEchoPath())
+            .args("interval", "5") // waits 500 ms
+            .stdout(Stdio.Pipe)
+        val child = command.spawn()
+
+        repeat(3) {
+            assertNull(child.tryWait())
+            println(child.bufferedStdout()?.readLine())
+        }
+
+        val returnCode = child.wait()
+        assertEquals(0, returnCode)
     }
 
     @Test
@@ -49,12 +70,15 @@ class ChildTest {
             .stdin(Stdio.Pipe)
             .stdout(Stdio.Pipe)
         val child = command.spawn()
+        assertNull(child.tryWait())
         val expect = "Hello World!"
         child.bufferedStdin()?.writeLine(expect)
         child.bufferedStdin()?.flush()
         val line = child.bufferedStdout()?.readLine()
         assertEquals(expect, line)
-        child.wait()
+        val returnCode = child.wait()
+        assertEquals(returnCode, child.tryWait())
+        assertEquals(returnCode, child.wait())
     }
 
     @Test
@@ -68,9 +92,13 @@ class ChildTest {
         for (j in 0..10000) {
             child.bufferedStdin()?.writeLine("[$j]$expect")
             child.bufferedStdin()?.flush()
+            assertNull(child.tryWait())
             val line = child.bufferedStdout()?.readLine()
             assertEquals("[$j]$expect", line)
         }
-        child.wait()
+        val returnCode = child.wait()
+        assertEquals(returnCode, child.tryWait())
+        assertEquals(returnCode, child.wait())
+        assertEquals(returnCode, child.tryWait())
     }
 }
