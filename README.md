@@ -43,6 +43,8 @@ It will bring
 - x86_64-pc-windows-gnu (mingw-w64)
 - jvm
 
+> **Note for Windows users**: See [Windows Build Guide](docs/WINDOWS.md) for information about static linking and the `libstdc++-6.dll` issue.
+
 # Dependent
 
 - Rust Standard Library 1.83.0

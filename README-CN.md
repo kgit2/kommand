@@ -40,6 +40,8 @@ Rust 是一门兼顾性能和工程性的优秀语言。
 - x86_64-pc-windows-gnu (mingw-w64)
 - jvm
 
+> **Windows 用户注意**：有关静态链接和 `libstdc++-6.dll` 问题的信息，请参阅 [Windows 构建指南](docs/WINDOWS-CN.md)。
+
 # 依赖于
 
 - Rust Standard Library 1.83.0
