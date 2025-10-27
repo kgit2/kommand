@@ -1,0 +1,256 @@
+name: Windows No-MinGW Examples Test
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+    paths:
+      - 'kommand-examples/**'
+      - 'kommand-core/**'
+      - 'src/**'
+      - 'build.gradle.kts'
+      - '.github/workflows/windows-no-mingw-examples.yml'
+  pull_request:
+    branches: [ "main", "dev" ]
+    paths:
+      - 'kommand-examples/**'
+      - 'kommand-core/**'
+      - 'src/**'
+      - 'build.gradle.kts'
+      - '.github/workflows/windows-no-mingw-examples.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-no-mingw-test:
+    name: Test Examples on Windows (No MinGW)
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          architecture: 'x64'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Verify MinGW not installed
+        shell: pwsh
+        run: |
+          Write-Host "Checking that MinGW is not in PATH..."
+          $mingwPaths = @(
+            "C:\msys64",
+            "C:\mingw-w64",
+            "C:\MinGW"
+          )
+          foreach ($path in $mingwPaths) {
+            if (Test-Path $path) {
+              Write-Host "WARNING: MinGW installation found at $path"
+            }
+          }
+          $pathEnv = $env:PATH -split ';'
+          $mingwInPath = $pathEnv | Where-Object { $_ -like "*mingw*" -or $_ -like "*msys*" }
+          if ($mingwInPath) {
+            Write-Host "WARNING: MinGW/MSYS found in PATH: $mingwInPath"
+          } else {
+            Write-Host "✓ No MinGW/MSYS found in PATH"
+          }
+
+      - name: Discover example projects
+        id: discover
+        shell: pwsh
+        run: |
+          $examples = @()
+          $examplesDir = "kommand-examples"
+          
+          Get-ChildItem -Path $examplesDir -Directory | ForEach-Object {
+            $examplePath = $_.FullName
+            $exampleName = $_.Name
+            
+            # Check for build.gradle or build.gradle.kts
+            if ((Test-Path "$examplePath\build.gradle") -or (Test-Path "$examplePath\build.gradle.kts")) {
+              Write-Host "Found example: $exampleName"
+              $examples += $exampleName
+            }
+          }
+          
+          # Convert to JSON array for matrix
+          $examplesJson = $examples | ConvertTo-Json -Compress
+          if ($examples.Count -eq 1) {
+            $examplesJson = "[$examplesJson]"
+          }
+          
+          Write-Host "Discovered examples: $examplesJson"
+          "examples=$examplesJson" >> $env:GITHUB_OUTPUT
+          "count=$($examples.Count)" >> $env:GITHUB_OUTPUT
+
+      - name: Build all examples
+        shell: pwsh
+        run: |
+          $examples = '${{ steps.discover.outputs.examples }}' | ConvertFrom-Json
+          $buildErrors = @()
+          
+          foreach ($example in $examples) {
+            Write-Host "`n========================================" -ForegroundColor Cyan
+            Write-Host "Building example: $example" -ForegroundColor Cyan
+            Write-Host "========================================`n" -ForegroundColor Cyan
+            
+            # Create log directory
+            New-Item -ItemType Directory -Force -Path "logs" | Out-Null
+            
+            # Build the example and capture output
+            $logFile = "logs\build-$example.log"
+            
+            # Run gradle build
+            $process = Start-Process -FilePath ".\gradlew.bat" `
+              -ArgumentList ":kommand-examples:${example}:assemble", "--no-daemon", "--stacktrace" `
+              -NoNewWindow -PassThru -Wait `
+              -RedirectStandardOutput "logs\build-$example-stdout.log" `
+              -RedirectStandardError "logs\build-$example-stderr.log"
+            
+            if ($process.ExitCode -ne 0) {
+              Write-Host "✗ Build failed for $example with exit code $($process.ExitCode)" -ForegroundColor Red
+              $buildErrors += $example
+              
+              # Show last 50 lines of stderr if exists
+              if (Test-Path "logs\build-$example-stderr.log") {
+                Write-Host "`nLast 50 lines of stderr:" -ForegroundColor Yellow
+                Get-Content "logs\build-$example-stderr.log" -Tail 50
+              }
+            } else {
+              Write-Host "✓ Build succeeded for $example" -ForegroundColor Green
+            }
+          }
+          
+          if ($buildErrors.Count -gt 0) {
+            Write-Host "`n✗ Build failed for examples: $($buildErrors -join ', ')" -ForegroundColor Red
+            exit 1
+          }
+          
+          Write-Host "`n✓ All examples built successfully" -ForegroundColor Green
+
+      - name: Find and test executables
+        shell: pwsh
+        run: |
+          Write-Host "`n========================================" -ForegroundColor Cyan
+          Write-Host "Finding and testing executables" -ForegroundColor Cyan
+          Write-Host "========================================`n" -ForegroundColor Cyan
+          
+          # Find all .exe files in build/bin directories
+          $executables = Get-ChildItem -Path "kommand-examples" -Recurse -Filter "*.exe" | 
+            Where-Object { $_.FullName -like "*\build\bin\*" }
+          
+          if ($executables.Count -eq 0) {
+            Write-Host "✗ No executables found!" -ForegroundColor Red
+            Write-Host "Searching for build output..." -ForegroundColor Yellow
+            Get-ChildItem -Path "kommand-examples" -Recurse -Directory -Filter "build" | ForEach-Object {
+              Write-Host "`nContents of $($_.FullName):"
+              Get-ChildItem -Path $_.FullName -Recurse | Select-Object FullName | Format-Table -AutoSize
+            }
+            exit 1
+          }
+          
+          Write-Host "Found $($executables.Count) executable(s):`n"
+          $executables | ForEach-Object { Write-Host "  - $($_.FullName)" }
+          
+          $testErrors = @()
+          
+          foreach ($exe in $executables) {
+            Write-Host "`n----------------------------------------"
+            Write-Host "Testing: $($exe.Name)" -ForegroundColor Cyan
+            Write-Host "Path: $($exe.FullName)"
+            Write-Host "----------------------------------------"
+            
+            # Create log directory
+            New-Item -ItemType Directory -Force -Path "logs\exe-tests" | Out-Null
+            
+            $baseName = [System.IO.Path]::GetFileNameWithoutExtension($exe.Name)
+            $logPrefix = "logs\exe-tests\$baseName"
+            
+            try {
+              # Check file dependencies with dumpbin if available, otherwise use alternative
+              Write-Host "`nChecking DLL dependencies..."
+              $dumpbinPath = Get-Command "dumpbin.exe" -ErrorAction SilentlyContinue
+              if ($dumpbinPath) {
+                & dumpbin /DEPENDENTS $exe.FullName 2>&1 | Tee-Object -FilePath "$logPrefix-dependencies.log"
+              } else {
+                Write-Host "dumpbin not available, checking with objdump if present..."
+                $objdumpPath = Get-Command "objdump.exe" -ErrorAction SilentlyContinue
+                if ($objdumpPath) {
+                  & objdump -p $exe.FullName 2>&1 | Select-String -Pattern "DLL Name:" | Tee-Object -FilePath "$logPrefix-dependencies.log"
+                }
+              }
+              
+              Write-Host "`nRunning executable..."
+              # Run the executable with timeout
+              $process = Start-Process -FilePath $exe.FullName `
+                -NoNewWindow -PassThru -Wait `
+                -RedirectStandardOutput "$logPrefix-stdout.log" `
+                -RedirectStandardError "$logPrefix-stderr.log"
+              
+              $exitCode = $process.ExitCode
+              
+              # Display output
+              if (Test-Path "$logPrefix-stdout.log") {
+                $stdout = Get-Content "$logPrefix-stdout.log" -Raw
+                if ($stdout) {
+                  Write-Host "`nStdout:" -ForegroundColor Yellow
+                  Write-Host $stdout
+                }
+              }
+              
+              if (Test-Path "$logPrefix-stderr.log") {
+                $stderr = Get-Content "$logPrefix-stderr.log" -Raw
+                if ($stderr) {
+                  Write-Host "`nStderr:" -ForegroundColor Yellow
+                  Write-Host $stderr
+                }
+              }
+              
+              if ($exitCode -eq 0) {
+                Write-Host "✓ Executable ran successfully (exit code: 0)" -ForegroundColor Green
+              } else {
+                Write-Host "✗ Executable failed with exit code: $exitCode" -ForegroundColor Red
+                $testErrors += "$($exe.Name) (exit code: $exitCode)"
+              }
+              
+            } catch {
+              Write-Host "✗ Error running executable: $_" -ForegroundColor Red
+              $testErrors += "$($exe.Name) (error: $_)"
+            }
+          }
+          
+          Write-Host "`n========================================"
+          if ($testErrors.Count -gt 0) {
+            Write-Host "✗ Test failures:" -ForegroundColor Red
+            $testErrors | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+            exit 1
+          } else {
+            Write-Host "✓ All executables ran successfully!" -ForegroundColor Green
+          }
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            logs/
+            kommand-examples/**/build/reports/
+          retention-days: 7
+
+      - name: Upload executables for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-executables
+          path: |
+            kommand-examples/**/build/bin/**/*.exe
+          retention-days: 7
