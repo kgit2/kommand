@@ -1,0 +1,170 @@
+name: Windows No-MinGW Examples Test
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+    paths:
+      - 'kommand-examples/**'
+      - 'kommand-core/**'
+      - 'src/**'
+      - 'build.gradle.kts'
+      - '.github/workflows/windows-no-mingw-examples.yml'
+  pull_request:
+    branches: [ "main", "dev" ]
+    paths:
+      - 'kommand-examples/**'
+      - 'kommand-core/**'
+      - 'src/**'
+      - 'build.gradle.kts'
+      - '.github/workflows/windows-no-mingw-examples.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-examples:
+    name: Build Examples (with MSYS2/MinGW)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          architecture: 'x64'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Install MSYS2/Mingw toolchain
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-gcc
+
+      - name: Add MSYS2 mingw to PATH
+        shell: pwsh
+        run: |
+          $mingw = 'C:\msys64\mingw64\bin'
+          if (Test-Path $mingw) {
+            Write-Host "Adding $mingw to PATH"
+            echo "$mingw" >> $env:GITHUB_PATH
+          } else {
+            Write-Host "MSYS2 mingw not found at $mingw"
+          }
+
+      - name: Build all examples
+        shell: pwsh
+        run: |
+          .\gradlew.bat :kommand-examples:assemble --no-daemon --stacktrace
+
+      - name: Find built executables and upload
+        shell: pwsh
+        run: |
+          $matches = Get-ChildItem -Path "kommand-examples" -Recurse -Filter "*.exe" |
+            Where-Object { $_.FullName -like "*\build\bin\*" } |
+            Select-Object -ExpandProperty FullName
+          if ($matches.Count -eq 0) {
+            Write-Host "No executables found, showing build directories for debugging"
+            Get-ChildItem -Path "kommand-examples" -Recurse -Directory -Filter "build" |
+              ForEach-Object {
+                Get-ChildItem -Path $_.FullName -Recurse |
+                  Select-Object FullName |
+                  Format-Table -AutoSize
+              }
+            exit 1
+          } else {
+            Write-Host "Found executables:"
+            $matches | ForEach-Object { Write-Host " - $_" }
+          }
+
+      - name: Upload built executables
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-executables
+          path: kommand-examples/**/build/bin/**/*.exe
+          retention-days: 7
+
+  windows-no-mingw-test:
+    name: Test Examples on Windows (No MinGW)
+    runs-on: windows-latest
+    needs: build-examples
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify MinGW not installed
+        shell: pwsh
+        run: |
+          Write-Host "Checking that MinGW is not in PATH..."
+          $mingwPaths = @("C:\msys64","C:\mingw-w64","C:\MinGW")
+          foreach ($p in $mingwPaths) {
+            if (Test-Path $p) {
+              Write-Host "WARNING: $p exists"
+            }
+          }
+          $pathEnv = $env:PATH -split ';'
+          $mingwInPath = $pathEnv | Where-Object { $_ -like "*mingw*" -or $_ -like "*msys*" }
+          if ($mingwInPath) {
+            Write-Host "WARNING: MinGW/MSYS found in PATH: $mingwInPath"
+            exit 1
+          } else {
+            Write-Host "✓ No MinGW/MSYS found in PATH"
+          }
+
+      - name: Download built executables
+        uses: actions/download-artifact@v4
+        with:
+          name: built-executables
+          path: artifacts
+
+      - name: Find executables to test
+        shell: pwsh
+        run: |
+          $executables = Get-ChildItem -Path "artifacts" -Recurse -Filter "*.exe" |
+            Where-Object { $_.FullName -like "*\build\bin\*" }
+          if ($executables.Count -eq 0) {
+            Write-Host "✗ No executables found in artifacts!"
+            exit 1
+          }
+          Write-Host "Found $($executables.Count) exe(s):"
+          $executables | ForEach-Object { Write-Host " - $($_.FullName)" }
+
+      - name: Test each executable
+        shell: pwsh
+        run: |
+          $executables = Get-ChildItem -Path "artifacts" -Recurse -Filter "*.exe" |
+            Where-Object { $_.FullName -like "*\build\bin\*" }
+          $errors = @()
+          foreach ($exe in $executables) {
+            Write-Host "`n--- Running $($exe.FullName) ---"
+            $dumpbin = Get-Command dumpbin.exe -ErrorAction SilentlyContinue
+            if ($dumpbin) {
+              & dumpbin /DEPENDENTS $exe.FullName 2>&1 |
+                Tee-Object -FilePath "$($exe.Name)-dependencies.log"
+            } else {
+              Write-Host "dumpbin not available; skipping dependency dump"
+            }
+            $proc = Start-Process -FilePath $exe.FullName -NoNewWindow -PassThru -Wait `
+              -RedirectStandardOutput "$($exe.Name)-stdout.log" `
+              -RedirectStandardError "$($exe.Name)-stderr.log"
+            if ($proc.ExitCode -ne 0) {
+              Write-Host "✗ $($exe.Name) exited with $($proc.ExitCode)"
+              $errors += "$($exe.Name) (exit $($proc.ExitCode))"
+            } else {
+              Write-Host "✓ $($exe.Name) ran (exit 0)"
+            }
+          }
+          if ($errors.Count -gt 0) {
+            Write-Host "Failures: $errors"
+            exit 1
+          } else {
+            Write-Host "All ok"
+          }
