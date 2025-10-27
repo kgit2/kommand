@@ -23,7 +23,7 @@ libstdc++-6.dll is missing or not found
 
 ## Kommand 如何处理这个问题
 
-从 2.3.0 版本开始，Kommand 通过在 cinterop 定义文件中设置以下链接器选项，自动配置 Windows 构建的静态链接：
+Kommand 通过在 cinterop 定义文件中设置以下链接器选项，自动配置 Windows 构建的静态链接：
 
 - `-static` - 尽可能静态链接所有库
 - `-static-libgcc` - 静态链接 GCC 运行时库
@@ -33,17 +33,15 @@ libstdc++-6.dll is missing or not found
 
 ## 如果我仍然遇到错误怎么办？
 
-如果您使用的是旧版本的 Kommand 或从源代码构建，您可能需要：
+如果您从源代码构建，您可能需要：
 
-1. **更新到最新版本**的 Kommand（2.3.0 或更高版本）
-
-2. **使用正确的标志重新构建 kommand-core 本地库**：
+1. **使用正确的标志重新构建 kommand-core 本地库**：
    ```bash
    cd kommand-core
    just x86_64-pc-windows-gnu
    ```
 
-3. **重新构建您的 Kotlin 应用程序**
+2. **重新构建您的 Kotlin 应用程序**
 
 ## 对于应用程序开发者
 

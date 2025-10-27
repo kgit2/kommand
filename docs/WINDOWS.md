@@ -23,7 +23,7 @@ The solution is to **statically link** these runtime libraries into your executa
 
 ## How Kommand Handles This
 
-As of version 2.3.0, Kommand automatically configures static linking for Windows builds by setting the following linker options in the cinterop definition file:
+Kommand automatically configures static linking for Windows builds by setting the following linker options in the cinterop definition file:
 
 - `-static` - Link all libraries statically when possible
 - `-static-libgcc` - Statically link the GCC runtime library
@@ -33,17 +33,15 @@ These flags are configured in `src/nativeInterop/cinterop/x86_64-pc-windows-gnu.
 
 ## What If I Still Get the Error?
 
-If you're using an older version of Kommand or building from source, you may need to:
+If you're building from source, you may need to:
 
-1. **Update to the latest version** of Kommand (2.3.0 or later)
-
-2. **Rebuild the kommand-core native library** with the proper flags:
+1. **Rebuild the kommand-core native library** with the proper flags:
    ```bash
    cd kommand-core
    just x86_64-pc-windows-gnu
    ```
 
-3. **Rebuild your Kotlin application**
+2. **Rebuild your Kotlin application**
 
 ## For Application Developers
 
