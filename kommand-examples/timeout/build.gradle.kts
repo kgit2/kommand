@@ -78,18 +78,20 @@ kotlin {
     }
 }
 
-// Ensure kommand-core is built before assembling examples
-tasks.register("buildKommandCoreForWin") {
-    doLast {
-        exec {
-            workingDir = file("${rootProject.projectDir}/kommand-core")
-            environment("RUSTFLAGS", "-C link-arg=-static-libgcc -C link-arg=-static-libstdc++")
-            commandLine("cargo", "build", "--release", "--target", "x86_64-pc-windows-gnu")
+// Ensure kommand-core is built before assembling examples (only on Windows)
+if (currentPlatform == Platform.MINGW_X64) {
+    tasks.register("buildKommandCoreForWin") {
+        doLast {
+            exec {
+                workingDir = file("${rootProject.projectDir}/kommand-core")
+                environment("RUSTFLAGS", "-C link-arg=-static-libgcc -C link-arg=-static-libstdc++")
+                commandLine("cargo", "build", "--release", "--target", "x86_64-pc-windows-gnu")
+            }
         }
     }
-}
-tasks.matching { it.name == "assemble" }.configureEach {
-    dependsOn(tasks.named("buildKommandCoreForWin"))
+    tasks.matching { it.name == "assemble" }.configureEach {
+        dependsOn(tasks.named("buildKommandCoreForWin"))
+    }
 }
 
 enum class Platform(
