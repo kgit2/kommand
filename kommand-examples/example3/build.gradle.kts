@@ -1,5 +1,7 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.KonanTarget
 
 val currentPlatform: Platform = when {
     DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX && DefaultNativePlatform.getCurrentArchitecture().isAmd64 -> Platform.MACOS_X64
@@ -46,6 +48,23 @@ kotlin {
         }
     }
 
+    // Ensure kommand-core static lib is built and linked for mingw target
+    targets.withType(KotlinNativeTarget::class.java).configureEach {
+        binaries.configureEach {
+            if (konanTarget == KonanTarget.MINGW_X64) {
+                // static-link libgcc/libstdc++
+                linkerOpts.addAll(listOf("-static-libgcc", "-static-libstdc++"))
+
+                // point to kommand-core static lib output (built by cargo)
+                val coreLibDir = file("${rootProject.projectDir}/kommand-core/target/x86_64-pc-windows-gnu/release")
+                linkerOpts.addAll(listOf("-L", coreLibDir.absolutePath, "-l:libkommand_core.a"))
+
+                // include dir for generated header
+                compilerOpts.addAll(listOf("-I", "${rootProject.projectDir}/kommand-core"))
+            }
+        }
+    }
+
     applyDefaultHierarchyTemplate()
 
     sourceSets {
@@ -55,6 +74,20 @@ kotlin {
             }
         }
     }
+}
+
+// Ensure kommand-core is built before assembling examples
+tasks.register("buildKommandCoreForWin") {
+    doLast {
+        exec {
+            workingDir = file("${rootProject.projectDir}/kommand-core")
+            environment("RUSTFLAGS", "-C link-arg=-static-libgcc -C link-arg=-static-libstdc++")
+            commandLine("cargo", "build", "--release", "--target", "x86_64-pc-windows-gnu")
+        }
+    }
+}
+tasks.matching { it.name == "assemble" }.configureEach {
+    dependsOn(tasks.named("buildKommandCoreForWin"))
 }
 
 enum class Platform(
