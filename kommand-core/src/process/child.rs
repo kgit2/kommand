@@ -68,6 +68,12 @@ pub extern "C" fn wait_child(mut child: *const c_void) -> IntResult {
     child.wait().into()
 }
 
+#[no_mangle]
+pub extern "C" fn try_wait_child(mut child: *const c_void) -> IntResult {
+    let child = as_child_mut(&mut child);
+    child.try_wait().into()
+}
+
 /// The returned [Output] will empty
 /// if convert the [Child.stdout] and [Child.stderr] to buffered
 /// with [buffered_stdout_child] and [buffered_stderr_child]
