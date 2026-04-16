@@ -103,6 +103,8 @@ unsigned int id_child(const void *child);
 
 struct IntResult wait_child(const void *child);
 
+struct IntResult try_wait_child(const void *child);
+
 /**
  * The returned [Output] will empty
  * if convert the [Child.stdout] and [Child.stderr] to buffered

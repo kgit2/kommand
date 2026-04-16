@@ -21,5 +21,8 @@ expect class Child {
     fun wait(): Int
 
     @Throws(KommandException::class)
+    fun tryWait(): Int?
+
+    @Throws(KommandException::class)
     fun waitWithOutput(): Output
 }

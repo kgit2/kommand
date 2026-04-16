@@ -117,16 +117,33 @@ impl<E: Display> From<Result<Option<String>, E>> for VoidResult {
 impl From<io::Result<std::process::ExitStatus>> for IntResult {
     fn from(value: io::Result<std::process::ExitStatus>) -> Self {
         match value {
-            Ok(status) => match status.code() {
+            Ok(status) => Ok(Some(status)),
+            Err(e) => Err(e),
+        }
+        .into()
+    }
+}
+
+impl From<io::Result<Option<std::process::ExitStatus>>> for IntResult {
+    fn from(value: io::Result<Option<std::process::ExitStatus>>) -> Self {
+        match value {
+            Ok(status) => match status {
                 None => IntResult {
-                    ok: -1,
-                    err: into_cstring("No exit code"),
+                    ok: -2,
+                    err: into_cstring("Application still running"),
                     error_type: ErrorType::None,
                 },
-                Some(code) => IntResult {
-                    ok: code,
-                    err: std::ptr::null_mut() as *mut c_char,
-                    error_type: ErrorType::None,
+                Some(status) => match status.code() {
+                    None => IntResult {
+                        ok: -1,
+                        err: into_cstring("No exit code"),
+                        error_type: ErrorType::None,
+                    },
+                    Some(code) => IntResult {
+                        ok: code,
+                        err: std::ptr::null_mut() as *mut c_char,
+                        error_type: ErrorType::None,
+                    },
                 },
             },
             Err(e) => IntResult {
